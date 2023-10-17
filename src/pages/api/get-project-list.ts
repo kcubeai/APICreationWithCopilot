@@ -31,7 +31,6 @@ export default async function handler(req: any, res: any) {
         }
 
         if (id == "") {
-            console.log("admin called,,,,,,,,,,,,,,,,,,,111", req.headers)
             if (isSuperAdmin) {
 
                 let query = ``;
@@ -50,11 +49,9 @@ export default async function handler(req: any, res: any) {
                     res.status(500).json({ message: 'Error in fetching the project list' });
                 }
             } else if (isAdmin) {
-                console.log("admin called,,,,,,,,,,,,,,,,,,,")
                 let query = await DBCONNECT(`SELECT project_id FROM users_projects where user_id=${userID}`);
                 var project_ids = query.rows.map((item: any) => item.project_id)
                 let list_query = `Select * from projects where id in (${project_ids})`
-                console.log(".............................", list_query)
                 // const result = await DBCONNECT(list_query);
                 try {
 

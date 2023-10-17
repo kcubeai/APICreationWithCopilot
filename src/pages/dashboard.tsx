@@ -17,7 +17,7 @@ export default function Login() {
     const [dataforVM, setDataVM] = useState<any>("");
     const { token, setToken, isAdmin, isSuperAdmin, isUser, userID } = useAuth();
     const router = useRouter();
-    const [selectedType, setSelectedType] = useState('VM');
+    const [selectedType, setSelectedType] = useState('EC2');
 
     const handleTypeChange = (type: string) => {
         setSelectedType(type);
@@ -56,7 +56,7 @@ export default function Login() {
                 if (record.state_changed_date != "") {
 
                     var date = moment(record.state_changed_date).format('YYYY-MM-DD HH:mm:ss');
-                    console.log()
+                    // console.log()
                     return date;
                 } else {
                     return ""
@@ -114,7 +114,7 @@ export default function Login() {
                 if (record.state_changed_date != "") {
 
                     var date = moment(record.state_changed_date).format('YYYY-MM-DD HH:mm:ss');
-                    console.log()
+                    // console.log()
                     return date;
                 } else {
                     return ""
@@ -170,7 +170,7 @@ export default function Login() {
                 if (record.state_changed_date != "") {
 
                     var date = moment(record.state_changed_date).format('YYYY-MM-DD HH:mm:ss');
-                    console.log()
+                    // console.log()
                     return date;
                 } else {
                     return ""
@@ -273,7 +273,8 @@ export default function Login() {
                 'Authorization': `${token}`,
                 'type': selectedType,
                 'instance_id': id,
-                'state': 'stop'
+                'state': 'stop',
+                userID
             }
         }).then((response) => {
 
@@ -307,7 +308,8 @@ export default function Login() {
                 'Authorization': `${token}`,
                 'type': selectedType,
                 'instance_id': id,
-                'state': 'start'
+                'state': 'start',
+                userID
             }
         }).then((response) => {
 

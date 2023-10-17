@@ -19,6 +19,7 @@ export default async function handler(req: any, res: any) {
     if (result.rows.length > 0) {
         if (result.rows[0].username == username) {
             const token = createAccessToken(username)
+            const update_log = await DBCONNECT(`insert into user_logs (user_id,last_login) values(${result.rows[0].id},NOW())`);
             //@ts-ignore
             const enckey = encrypt(process.env.APP_KEY ? process.env.APP_KEY : "", process.env.CYPHERKEY)
             res.status(200).json({ message: 'Login Successful', token: token + ' ' + enckey, isAdmin: result.rows[0].isadmin, isSuperAdmin: result.rows[0].issuperadmin, isUser: result.rows[0].isuser, id: result.rows[0].id });

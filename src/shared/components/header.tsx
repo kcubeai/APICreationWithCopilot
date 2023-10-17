@@ -23,7 +23,7 @@ export default function HeaderComponent(props: any) {
                 'Authorization': `${token}`,
             }
         }).then((response: any) => {
-            console.log(response);
+            // console.log(response);
             notification.success({
                 message: 'Success',
                 description: 'synced successfully',
@@ -44,10 +44,11 @@ export default function HeaderComponent(props: any) {
         <>
 
             <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h1 style={{ color: '#fff' }}>{props.title}</h1>
+                <h2 style={{ color: '#fff' }}>{props.title}</h2>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     {!router.asPath.includes('dashboard') && <Button type="primary" onClick={() => router.push('/dashboard')} icon={<DashboardOutlined />}>Dashboard</Button>}
                     {isSuperAdmin && <Button style={{ marginLeft: '10px' }} type="primary" onClick={sync} icon={<UserAddOutlined />}>Sync</Button>}
+                    {isSuperAdmin && <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => router.push('/logs')} icon={<UserAddOutlined />}>Logs</Button>}
                     {(isSuperAdmin || isAdmin) && !router.asPath.includes('add-user') && <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => router.push('/add-user')} icon={<UserAddOutlined />}>Users</Button>}
                     {(isSuperAdmin && !router.asPath.includes('add-projects')) && <Button type="primary" style={{ marginLeft: '10px' }} onClick={() => router.push('/add-projects')} icon={<UserAddOutlined />}>Projects</Button>}
                     <Button type="primary" onClick={handleLogout} icon={<LogoutOutlined />} style={{ marginLeft: '10px' }}>Logout</Button>

@@ -83,7 +83,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     ];
 
     const deleteUser = (record: any) => {
-        axios.post('/api/add-user', { id: record.id }, { headers: { "authorization": token, action: 'delete' } }).then((response: any) => {
+        axios.post('/api/add-user', { id: record.id }, { headers: { "authorization": token, action: 'delete', userID } }).then((response: any) => {
             if (response.data.status == 200) {
                 debugger;
                 setUserList(response.data.userList)
@@ -216,10 +216,11 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     }
     const handleSubmit = (event: any) => {
         const formValues = form.getFieldsValue()
-        axios.post('/api/add-user', formValues, { headers: { "authorization": token } }).then((response: any) => {
+        axios.post('/api/add-user', formValues, { headers: { "authorization": token, userID } }).then((response: any) => {
             if (response.data.status == 200) {
 
                 setUserList(response.data.userList);
+                getUserList()
                 notification.success({
                     message: 'Success',
                     description: "User eleted successfully",
@@ -240,7 +241,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     }
     const getProjectList = () => {
         if (isAdmin) {
-            console.log("called")
+            // console.log("called")
             axios.get('/api/get-project-list', { headers: { authorization: token, id: '', isAdmin, userID } }).then((response: any) => {
                 if (response.data.projectList && response.data.projectList.length > 0) {
                     setProjectCheckList(response.data.projectList);
@@ -439,7 +440,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         })
     }
     const data: any = { projectList, ec2List, rdsList, userList, vmList }
-    console.log(data)
+    // console.log(data)
     // Pass data to the page via props
     return { props: { data } }
 }

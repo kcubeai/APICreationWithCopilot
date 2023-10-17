@@ -11,7 +11,7 @@ const { useForm } = Form;
 
 export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
     const [showAddUser, setAddUser] = useState<boolean>(false)
-    const { token, isSuperAdmin, isAdmin, isUser } = useAuth()
+    const { token, isSuperAdmin, isAdmin, isUser, userID } = useAuth()
     const router = useRouter()
     const [form] = useForm();
     const [ec2List, setEC2List] = useState<any>([]);
@@ -60,7 +60,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         setAddUser(true);
     }
     const deleteProject = (record: any) => {
-        axios.post('/api/add-project', { id: record.id }, { headers: { 'Authorization': token, action: "delete" } }).then((response: any) => {
+        axios.post('/api/add-project', { id: record.id }, { headers: { 'Authorization': token, action: "delete", userID } }).then((response: any) => {
 
             notification.success({
                 message: 'Success',
@@ -113,7 +113,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         }).then((response: any) => {
             const { ec2_instance_list, rds_identifiers, project_details, vmList } = response.data;
             debugger;
-            console.log(response.data);
+            // console.log(response.data);
             const updatedec2List: any = ec2_instance_list
                 .filter((topItem: any) =>
                     aws_ec2.some((existItem: any) => existItem.id === topItem.id)
@@ -159,7 +159,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
     const handleFormSubmit = (event: any) => {
         try {
 
-            axios.post('/api/add-project', formValues, { headers: { 'Authorization': token, action } }).then((response: any) => {
+            axios.post('/api/add-project', formValues, { headers: { 'Authorization': token, action, userID } }).then((response: any) => {
                 getProjectList([], [])
                 notification.success({
                     message: 'Success',

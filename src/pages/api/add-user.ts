@@ -14,6 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { id, username, password, role } = req.body;
     const action = req.headers['action'];
     const authorization: any = req.headers['authorization'];
+    const userID: any = req.headers['userid']
     logger.debug(`[${req.method} ${req.url}] - Authorization header: ${authorization}`);
     if (authorization) {
         if (authorization !== process.env.APP_KEY) {
@@ -39,6 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (action == 'delete') {
                 const delete_user_query = await DBCONNECT(`update user_detail set isactive=false where id=${id}`)
                 const user_list = await DBCONNECT('select * from user_detail where isactive=true');
+                const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time) values(${userID},'deleted the user with id ${id}',NOW())`);
                 res.status(200).json({ status: 200, message: 'User deleted successfully', userList: user_list.rows });
             } else {
                 let isadmin = role == "isadmin" ? true : false;
@@ -47,6 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                 const userAddQuery = `INSERT into user_detail (username,password,created_date,isadmin,issuperadmin,isuser,isactive) values ('${username}','${password}',NOW(),${isadmin},${issuperadmin},${isuser},true) Returning id;`;
                 const insert_result = await DBCONNECT(userAddQuery);
+                const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time) values(${userID},'added the user with id ${insert_result.rows[0].id}',NOW())`);
                 if (insert_result.rows[0].id != "") {
                     const { projectList } = req.body;
                     if (!issuperadmin) {
@@ -90,6 +93,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 
         } catch (error) {
+            logger.error(
+                `[${req.method} ${req.url}] - Issue is adding new User ${error}`
+            )
             res.status(500).json({ message: 'Issue is adding new User', error: error })
         }
 

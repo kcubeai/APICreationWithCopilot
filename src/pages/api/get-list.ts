@@ -4,8 +4,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import * as utils from '../../shared/aws-config';
 import { verify } from 'jsonwebtoken'
 import { decrypt, encrypt } from '@/shared/crypto';
-import { logger } from '@/shared/logger';
-import { DBCONNECT } from '@/shared/database';
+import { logger } from '../../shared/logger';
+import { DBCONNECT } from '../../shared/database';
 
 
 /**
@@ -283,7 +283,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                         }
                         if (role.rows[0].isuser) {
                             const listofProject = await DBCONNECT(`Select * from users_vm where user_id=${id}`);
-                            console.log("project list............", listofProject.rows);
+                            // console.log("project list............", listofProject.rows);
                             if (listofProject.rows.length > 0) {
                                 for (const project of listofProject.rows) {
                                     const ec2_list = await DBCONNECT(`Select * from vm_instances where id='${project.instance_id}'`);

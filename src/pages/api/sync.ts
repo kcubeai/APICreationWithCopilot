@@ -60,7 +60,7 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
             if (vmList.data.items?.length > 0) {
                 for (const instance of vmList.data.items) {
                     const isavail = await DBCONNECT(`Select is_mapped from public.vm_instances where id='${instance.id}'`);
-                    console.log(instance.networkInterfaces[0].networkIP)
+                    // console.log(instance.networkInterfaces[0].networkIP)
                     if (isavail.rows.length == 0) {
                         //@ts-ignore
                         var status = instance.status?.includes('RUNNING') ? false : true;
