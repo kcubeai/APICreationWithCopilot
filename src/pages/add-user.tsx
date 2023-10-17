@@ -68,7 +68,14 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
             dataIndex: 'edit',
             key: 'edit',
             render: (text: string, record: any) => {
-                return <Button disabled type="primary" >Edit</Button>;
+                if (record.issuperadmin) {
+                    return <Button  type="primary" disabled >Edit</Button>;
+                }
+                else{
+                    //render button with onclick function to view the respective user details
+                    return <Button  type="primary" onClick={() => viewUser(record)}>Edit</Button>;
+    
+                }
             }
         },
 
@@ -128,6 +135,62 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
             form.resetFields(['projectList', 'ec2List', 'rdsList', 'vmList'])
         }
     };
+
+// function to view the respective user details
+const viewUser = (record: any) => {
+    //api with action=get
+    axios.post('/api/add-user', { id: record.id }, { headers: { "authorization": token, action: 'get' } }).then((response: any) => {
+        if (response.data.status == 200) {
+            // debugger;
+            setUserList(response.data.userList)
+            getUserList()
+            notification.success({
+                message: 'Success',
+                description: "User Edited successfully",
+                placement: 'topRight',
+                duration: 3
+            });
+            form.resetFields();
+            setShowAdd(false)
+        }
+    }, (error: any) => {
+        notification.error({
+            message: 'Error',
+            description: "Issue in editing USers",
+            placement: 'topRight',
+            duration: 3
+        });
+    })
+}
+
+
+    const editUser = (record: any) => {
+        axios.post('/api/add-user', { id: record.id }, { headers: { "authorization": token, action: 'edit' } }).then((response: any) => {
+            if (response.data.status == 200) {
+                // debugger;
+                setUserList(response.data.userList)
+                getUserList()
+                notification.success({
+                    message: 'Success',
+                    description: "User Edited successfully",
+                    placement: 'topRight',
+                    duration: 3
+                });
+                form.resetFields();
+                setShowAdd(false)
+            }
+        }, (error: any) => {
+            notification.error({
+                message: 'Error',
+                description: "Issue in editing USers",
+                placement: 'topRight',
+                duration: 3
+            });
+        })
+    }
+
+
+
     const getUserList = async () => {
         await axios.get('/api/get-user-list', { headers: { Authorization: token } }).then((response: any) => {
             if (response.data.userList && response.data.userList.length > 0) {
