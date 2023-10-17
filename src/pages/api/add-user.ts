@@ -11,13 +11,15 @@ import { logger } from '@/shared/logger';
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     logger.debug(`[${req.method} ${req.url}] - Request received with body: ${JSON.stringify(req.body)}`);
-    const { username, password, email, mobile } = req.body;
+    const { id, username, password, role } = req.body;
+    const action = req.headers['action'];
     const authorization: any = req.headers['authorization'];
     logger.debug(`[${req.method} ${req.url}] - Authorization header: ${authorization}`);
     if (authorization) {
         if (authorization !== process.env.APP_KEY) {
             if (authorization.split(" ")[1]) {
-                var deckey = decrypt(authorization.split(" ")[1])
+                //@ts-ignore
+                var deckey = decrypt(authorization.split(" ")[1], process.env.CYPHERKEY)
                 if (deckey !== process.env.APP_KEY) {
                     logger.error(
                         `[${req.method} ${req.url}] - Unauthorized Token`
@@ -33,23 +35,64 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 return;
             }
         }
+        try {
+            if (action == 'delete') {
+                const delete_user_query = await DBCONNECT(`update user_detail set isactive=false where id=${id}`)
+                const user_list = await DBCONNECT('select * from user_detail where isactive=true');
+                res.status(200).json({ status: 200, message: 'User deleted successfully', userList: user_list.rows });
+            } else {
+                let isadmin = role == "isadmin" ? true : false;
+                let issuperadmin = role == "issuperadmin" ? true : false;
+                let isuser = role == "isuser" ? true : false;
 
-        // var decryptedEmail = decrypt(email)
-        // var decryptedMobile = decrypt(mobile)
-        var decryptedEmail = email
-        var decryptedMobile = mobile
-        const query = `INSERT INTO users (username, password, created_date, mobile, email) VALUES ('${username}', '${password}', NOW(),'${decryptedMobile}','${decryptedEmail}')`;
-        logger.debug(`[${req.method} ${req.url}] - Query: ${query}`);
-        const result = await DBCONNECT(query);
-        if (result) {
-            logger.info('User Added Successfully');
-            res.status(200).json({ message: 'User Added Successfully' });
-        } else {
-            logger.error(
-                `[${req.method} ${req.url}] - Error in adding user`
-            )
-            res.status(500).json({ message: 'Error in adding user' });
+                const userAddQuery = `INSERT into user_detail (username,password,created_date,isadmin,issuperadmin,isuser,isactive) values ('${username}','${password}',NOW(),${isadmin},${issuperadmin},${isuser},true) Returning id;`;
+                const insert_result = await DBCONNECT(userAddQuery);
+                if (insert_result.rows[0].id != "") {
+                    const { projectList } = req.body;
+                    if (!issuperadmin) {
+                        if (projectList && projectList.length > 0) {
+                            for (const project of projectList) {
+                                const user_project_query = `INSERT into users_projects (user_id,project_id) values (${insert_result.rows[0].id},${project})`;
+                                const addProject = await DBCONNECT(user_project_query);
+                            }
+
+                        }
+                    }
+                    if (isuser) {
+                        const { ec2List } = req.body;
+                        if (ec2List && ec2List.length > 0) {
+                            for (const project of ec2List) {
+                                const user_ec2_query = `INSERT into users_ec2 (user_id,instance_id) values (${insert_result.rows[0].id},'${project}')`;
+                                const addProject = await DBCONNECT(user_ec2_query);
+                            }
+
+                        }
+                        const { rdsList } = req.body;
+                        if (rdsList && rdsList.length > 0) {
+                            for (const project of rdsList) {
+                                const user_ec2_query = `INSERT into users_rds (user_id,identifier_id) values (${insert_result.rows[0].id},'${project}')`;
+                                const addProject = await DBCONNECT(user_ec2_query);
+                            }
+
+                        }
+                        const { vmList } = req.body;
+                        if (vmList && vmList.length > 0) {
+                            for (const project of vmList) {
+                                const user_vm_query = `INSERT into users_vm (user_id,instance_id) values (${insert_result.rows[0].id},'${project}')`;
+                                const addProject = await DBCONNECT(user_vm_query);
+                            }
+
+                        }
+                    }
+                }
+                res.status(200).json({ status: 200, message: 'User Added Successfully' })
+            }
+
+
+        } catch (error) {
+            res.status(500).json({ message: 'Issue is adding new User', error: error })
         }
+
     } else {
         logger.error(
             `[${req.method} ${req.url}] - Authorization missing`

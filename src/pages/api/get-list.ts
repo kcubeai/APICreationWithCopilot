@@ -5,6 +5,7 @@ import * as utils from '../../shared/aws-config';
 import { verify } from 'jsonwebtoken'
 import { decrypt, encrypt } from '@/shared/crypto';
 import { logger } from '@/shared/logger';
+import { DBCONNECT } from '@/shared/database';
 
 
 /**
@@ -18,11 +19,13 @@ export default async function handler(request: NextApiRequest, response: NextApi
     logger.debug(`[${request.method} ${request.url} ] Request received`);
     const type = request.headers['type'];
     const authorization: any = request.headers['authorization'];
+    const id: any = request.headers['id'];
     if (authorization) {
 
         if (authorization !== process.env.APP_KEY) {
             if (authorization.split(" ")[1]) {
-                var deckey = decrypt(authorization.split(" ")[1])
+                //@ts-ignore
+                var deckey = decrypt(authorization.split(" ")[1], process.env.CYPHERKEY)
                 if (deckey !== process.env.APP_KEY) {
                     logger.error(`[${request.method} ${request.url} ] Unauthorized Token`);
                     response.status(403).json({ error: 'Unauthorized Token' });
@@ -35,47 +38,286 @@ export default async function handler(request: NextApiRequest, response: NextApi
             }
         }
         try {
-            var instanceList: any = [];
             if (type == "EC2") {
 
-                const ec2Instances = await utils.ec2.describeInstances().promise();
-                if (ec2Instances && ec2Instances.Reservations && ec2Instances.Reservations.length > 0) {
 
-                    ec2Instances.Reservations.forEach((reservation: any) => {
-                        reservation.Instances.forEach((instance: any) => {
-                            instanceList.push({
-                                id: instance.InstanceId,
-                                name: instance.KeyName,
-                                state: instance.State.Name,
-                                region: instance.Placement.AvailabilityZone,
-                                platform: instance.Platform,
-                                publicIp: instance.PublicIpAddress,
-                                privateIp: instance.PrivateIpAddress,
-                                launchTime: instance.LaunchTime,
-                            });
-                        });
-                    });
+                if (id) {
+                    const role = await DBCONNECT(`select isadmin,issuperadmin,isuser from user_detail where id=${id}`);
+
+                    if (role.rows.length > 0) {
+                        var instanceList: any = [];
+                        if (role.rows[0].issuperadmin) {
+
+                            const list = await DBCONNECT('SELECT * from ec2_instances');
+                            if (list.rows.length > 0) {
+                                // list.rows.forEach((instance: any) => {
+                                for (const instance of list.rows) {
+                                    if (instance.project_id) {
+                                        const search = await DBCONNECT(`Select project_name from projects where id=${instance.project_id}`);
+                                        if (search.rows.length > 0) {
+                                            instance.project_name = search.rows[0].project_name;
+                                        }
+                                    }
+                                    instanceList.push({
+                                        id: instance.id,
+                                        name: instance.name,
+                                        state: instance.status,
+                                        isstopped: instance.isstopped,
+                                        publicIp: instance.public_ip,
+                                        privateIp: instance.privateip,
+                                        is_mapped: instance.is_mapped,
+                                        project_name: instance.project_name ? instance.project_name : "",
+                                        state_changed_date: instance.state_changed_date ? instance.state_changed_date : ""
+                                    });
+                                };
+                            }
+                            response.status(200).json({ instanceList });
+                        }
+                        if (role.rows[0].isadmin) {
+                            const listofProject = await DBCONNECT(`Select * from users_projects where user_id=${id}`);
+                            if (listofProject.rows.length > 0) {
+                                for (const project of listofProject.rows) {
+                                    const search = await DBCONNECT(`Select project_name from projects where id=${project.project_id}`);
+                                    const ec2_list = await DBCONNECT(`Select * from ec2_instances where project_id=${project.project_id}`);
+                                    if (ec2_list.rows.length > 0) {
+                                        ec2_list.rows.forEach((item: any) => {
+                                            instanceList.push({
+                                                id: item.id,
+                                                name: item.name,
+                                                state: item.status,
+                                                isstopped: item.isstopped,
+                                                publicIp: item.public_ip,
+                                                privateIp: item.privateip,
+                                                is_mapped: item.is_mapped,
+                                                project_name: search.rows[0].project_name ? search.rows[0].project_name : "",
+                                                state_changed_date: item.state_changed_date ? item.state_changed_date : ""
+                                            });
+                                        })
+                                    }
+                                }
+                            }
+                            response.status(200).json({ instanceList });
+                        }
+                        if (role.rows[0].isuser) {
+                            const listofProject = await DBCONNECT(`Select * from users_ec2 where user_id=${id}`);
+                            if (listofProject.rows.length > 0) {
+                                for (const project of listofProject.rows) {
+                                    const ec2_list = await DBCONNECT(`Select * from ec2_instances where id='${project.instance_id}'`);
+                                    if (ec2_list.rows.length > 0) {
+                                        for (const item of ec2_list.rows) {
+                                            if (item.project_id) {
+
+                                                const search = await DBCONNECT(`Select project_name from projects where id=${item.project_id}`);
+
+                                                instanceList.push({
+                                                    id: item.id,
+                                                    name: item.name,
+                                                    state: item.status,
+                                                    isstopped: item.isstopped,
+                                                    publicIp: item.public_ip,
+                                                    privateIp: item.privateip,
+                                                    is_mapped: item.is_mapped,
+                                                    project_name: search.rows[0].project_name ? search.rows[0].project_name : "",
+                                                    state_changed_date: item.state_changed_date ? item.state_changed_date : ""
+                                                });
+                                            }
+                                        }
+                                    }
+                                }
+
+                            }
+                            response.status(200).json({ instanceList });
+                        }
+                    }
+                }
+            } else if (type == "RDS") {
+                if (id) {
+                    const role = await DBCONNECT(`select isadmin,issuperadmin,isuser from user_detail where id=${id}`);
+                    if (role.rows.length > 0) {
+                        var instanceList: any = [];
+                        if (role.rows[0].issuperadmin) {
+
+
+                            const list = await DBCONNECT('SELECT * from rds_identifiers');
+                            if (list.rows.length > 0) {
+                                for (const instance of list.rows) {
+                                    if (instance.project_id) {
+                                        const search = await DBCONNECT(`Select project_name from projects where id=${instance.project_id}`);
+                                        if (search.rows.length > 0) {
+                                            instance.project_name = search.rows[0].project_name;
+                                        }
+                                    }
+                                    instanceList.push({
+                                        id: instance.id,
+                                        name: instance.name,
+                                        state: instance.status,
+                                        isstopped: instance.isstopped,
+                                        publicIp: instance.public_ip,
+                                        privateIp: instance.privateip,
+                                        is_mapped: instance.is_mapped,
+                                        project_name: instance.project_name ? instance.project_name : "",
+
+                                        state_changed_date: instance.state_changed_date ? instance.state_changed_date : ""
+                                    });
+                                };
+                            }
+                            response.status(200).json({ instanceList });
+                        }
+                        if (role.rows[0].isadmin) {
+                            const listofProject = await DBCONNECT(`Select * from users_projects where user_id=${id}`);
+                            if (listofProject.rows.length > 0) {
+                                for (const project of listofProject.rows) {
+                                    const search = await DBCONNECT(`Select project_name from projects where id=${project.project_id}`);
+
+                                    const ec2_list = await DBCONNECT(`Select * from rds_identifiers where project_id=${project.project_id}`);
+                                    if (ec2_list.rows.length > 0) {
+                                        ec2_list.rows.forEach((item: any) => {
+                                            instanceList.push({
+                                                id: item.id,
+                                                name: item.name,
+                                                state: item.status,
+                                                isstopped: item.isstopped,
+                                                publicIp: item.public_ip,
+                                                privateIp: item.privateip,
+                                                is_mapped: item.is_mapped,
+                                                project_name: search.rows[0].project_name ? search.rows[0].project_name : "",
+                                                state_changed_date: item.state_changed_date ? item.state_changed_date : ""
+                                            });
+                                        })
+                                    }
+                                }
+                            }
+
+                            response.status(200).json({ instanceList });
+                        }
+                        if (role.rows[0].isuser) {
+                            const listofProject = await DBCONNECT(`Select * from users_rds where user_id=${id}`);
+                            if (listofProject.rows.length > 0) {
+                                for (const project of listofProject.rows) {
+                                    const ec2_list = await DBCONNECT(`Select * from rds_identifiers where id='${project.identifier_id}'`);
+                                    if (ec2_list.rows.length > 0) {
+                                        for (const item of ec2_list.rows) {
+                                            if (item.project_id) {
+                                                const search = await DBCONNECT(`Select project_name from projects where id=${item.project_id}`);
+
+                                                instanceList.push({
+                                                    id: item.id,
+                                                    name: item.name,
+                                                    state: item.status,
+                                                    isstopped: item.isstopped,
+                                                    publicIp: item.public_ip,
+                                                    privateIp: item.privateip,
+                                                    is_mapped: item.is_mapped,
+                                                    project_name: search.rows[0].project_name ? search.rows[0].project_name : "",
+                                                    state_changed_date: item.state_changed_date ? item.state_changed_date : ""
+                                                });
+                                            }
+
+                                        }
+                                    }
+                                }
+                            }
+
+                            response.status(200).json({ instanceList });
+                        }
+                    }
+                }
+            } else if (type == "VM") {
+                if (id) {
+                    const role = await DBCONNECT(`select isadmin,issuperadmin,isuser from user_detail where id=${id}`);
+                    if (role.rows.length > 0) {
+                        var instanceList: any = [];
+                        if (role.rows[0].issuperadmin) {
+
+
+                            const list = await DBCONNECT('SELECT * from vm_instances');
+                            if (list.rows.length > 0) {
+                                for (const instance of list.rows) {
+                                    if (instance.project_id) {
+                                        const search = await DBCONNECT(`Select project_name from projects where id=${instance.project_id}`);
+                                        if (search.rows.length > 0) {
+                                            instance.project_name = search.rows[0].project_name;
+                                        }
+                                    }
+                                    instanceList.push({
+                                        id: instance.id,
+                                        name: instance.name,
+                                        state: instance.status,
+                                        isstopped: instance.isstopped,
+                                        privateIp: instance.privateip,
+                                        is_mapped: instance.is_mapped,
+                                        project_name: instance.project_name ? instance.project_name : "",
+
+                                        state_changed_date: instance.state_changed_date ? instance.state_changed_date : ""
+                                    });
+                                };
+                            }
+                            response.status(200).json({ instanceList });
+                        }
+                        if (role.rows[0].isadmin) {
+                            const listofProject = await DBCONNECT(`Select * from users_projects where user_id=${id}`);
+                            if (listofProject.rows.length > 0) {
+                                for (const project of listofProject.rows) {
+                                    const search = await DBCONNECT(`Select project_name from projects where id=${project.project_id}`);
+
+                                    const ec2_list = await DBCONNECT(`Select * from vm_instances where project_id=${project.project_id}`);
+                                    if (ec2_list.rows.length > 0) {
+                                        ec2_list.rows.forEach((item: any) => {
+                                            instanceList.push({
+                                                id: item.id,
+                                                name: item.name,
+                                                state: item.status,
+                                                isstopped: item.isstopped,
+                                                publicIp: item.public_ip,
+                                                privateIp: item.privateip,
+                                                is_mapped: item.is_mapped,
+                                                project_name: search.rows[0].project_name ? search.rows[0].project_name : "",
+                                                state_changed_date: item.state_changed_date ? item.state_changed_date : ""
+                                            });
+                                        })
+                                    }
+                                }
+                            }
+
+                            response.status(200).json({ instanceList });
+                        }
+                        if (role.rows[0].isuser) {
+                            const listofProject = await DBCONNECT(`Select * from users_vm where user_id=${id}`);
+                            console.log("project list............", listofProject.rows);
+                            if (listofProject.rows.length > 0) {
+                                for (const project of listofProject.rows) {
+                                    const ec2_list = await DBCONNECT(`Select * from vm_instances where id='${project.instance_id}'`);
+                                    if (ec2_list.rows.length > 0) {
+                                        for (const item of ec2_list.rows) {
+                                            if (item.project_id) {
+
+                                                const search = await DBCONNECT(`Select project_name from projects where id=${item.project_id}`);
+
+                                                instanceList.push({
+                                                    id: item.id,
+                                                    name: item.name,
+                                                    state: item.status,
+                                                    isstopped: item.isstopped,
+                                                    publicIp: item.public_ip,
+                                                    privateIp: item.privateip,
+                                                    is_mapped: item.is_mapped,
+                                                    project_name: search.rows[0].project_name ? search.rows[0].project_name : "",
+                                                    state_changed_date: item.state_changed_date ? item.state_changed_date : ""
+                                                });
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            response.status(200).json({ instanceList });
+                        }
+                    }
                 }
             } else {
-                const rdsInstances = await utils.rds.describeDBInstances().promise();
-                if (rdsInstances && rdsInstances.DBInstances && rdsInstances.DBInstances.length > 0) {
 
-                    rdsInstances.DBInstances.forEach((instance: any) => {
-                        instanceList.push({
-                            id: instance.DBInstanceIdentifier,
-                            name: instance.DBName,
-                            state: instance.DBInstanceStatus,
-                            region: instance.AvailabilityZone,
-                            platform: instance.Engine,
-                            publicIp: instance.Endpoint.Address,
-                            privateIp: instance.DBInstanceArn,
-                            launchTime: instance.InstanceCreateTime,
-                        });
-                    });
-                }
             }
 
-            response.status(200).json({ instanceList });
             logger.debug(`[${request.method} ${request.url} ] Request successful`);
         } catch (error: any) {
             if (error.statusCode == 403) {

@@ -7,24 +7,32 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest --watch"
+    "test": "jest --watch",
+    "export": "next export"
   },
   "dependencies": {
+    "@google-cloud/compute": "^4.0.1",
     "@types/node": "20.6.3",
     "@types/react": "18.2.22",
     "@types/react-dom": "18.2.7",
+    "antd": "^5.9.4",
     "aws-sdk": "^2.1462.0",
+    "axios": "^1.5.1",
     "crypto-js": "^4.1.1",
     "firebase": "^10.4.0",
+    "google-auth-library": "^9.1.0",
+    "googleapis": "^127.0.0",
     "jest-environment-jsdom": "^29.7.0",
     "jsonwebtoken": "^9.0.2",
     "log4js": "^6.9.1",
+    "moment": "^2.29.4",
     "next": "13.5.1",
     "node-mocks-http": "^1.13.0",
     "pg": "^8.11.3",
     "pino": "^8.15.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "swr": "^2.2.4",
     "typescript": "5.2.2"
   },
   "devDependencies": {
