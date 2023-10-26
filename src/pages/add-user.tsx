@@ -26,8 +26,27 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const [userList, setUserList] = useState(data.userList ? data.userList : [])
     const [filterUserList, setFilterList] = useState<any>(userList);
     const [projectCheckList, setProjectCheckList] = useState(data.projectList ? data.projectList : []);
-    const [ec2CheckList, setEc2CheckList] = useState(data.ec2List ? data.ec2List : []);
-    const [rdsCheckList, setRDSCheckList] = useState(data.rdsList ? data.rdsList : []);
+    // const [ec2CheckList, setEc2CheckList] = useState(data.ec2List ? data.ec2List.filter((item: any) => !item.status.includes("termin")) : []);
+    // const [rdsCheckList, setRDSCheckList] = useState(data.rdsList ? data.rdsList.filter((item: any) => !item.status.includes("delet")) : []);
+    // const [vmCheckList, setVMCheckList] = useState(data.vmList ? data.vmList : [])
+    const getdistinctValues = (data: any) => {
+        const distinctObjects = data.reduce((acc: any, obj: any) => {
+            // If the status is not 'termin', keep the object
+            if (!obj.status.includes("termin") && !obj.status.includes("dele")) {
+                acc[obj.id] = obj;
+            }
+            return acc;
+        }, {});
+
+        // Convert the object back to an array
+        const distinctArray = Object.values(distinctObjects);
+
+        console.log(distinctArray);
+        return distinctArray
+    }
+
+    const [ec2CheckList, setEc2CheckList] = useState(data.ec2List ? getdistinctValues(data.ec2List) : []);
+    const [rdsCheckList, setRDSCheckList] = useState(data.rdsList ? getdistinctValues(data.rdsList) : []);
     const [vmCheckList, setVMCheckList] = useState(data.vmList ? data.vmList : [])
     const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setUsername(event.target.value);
@@ -114,6 +133,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
             handleSearch()
             // getProjectList()
         }
+
     }, [])
 
     const handleSuperAdminChange = (event: any) => {
@@ -257,8 +277,10 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                         vmList.push(...response.data.gcp_vm_list)
                     })
                 }
-                setEc2CheckList(ec2List);
-                setRDSCheckList(rdsList);
+                setEc2CheckList(ec2List.filter((item: any) => !item.status.includes("termin")));
+                setRDSCheckList(rdsList.filter((item: any) => !item.status.includes("delet")));
+                // setEc2CheckList(getdistinctValues(ec2List));
+                // setRDSCheckList(getdistinctValues(rdsList));
                 setVMCheckList(vmList);
 
             })
@@ -339,14 +361,14 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                                     <Checkbox.Group onChange={handleEC2ListChange}>
                                         {ec2CheckList.map((ec2: any) => {
                                             //@ts-ignore
-                                            if (projectList.includes(ec2.project_id)) {
-                                                return (
-                                                    <Checkbox key={ec2.id} value={ec2.id}>
-                                                        {ec2.name}
-                                                    </Checkbox>
-                                                );
-                                            }
-                                            return null;
+                                            // if (projectList.includes(ec2.project_id)) {
+                                            return (
+                                                <Checkbox key={ec2.id} value={ec2.id}>
+                                                    {ec2.name}
+                                                </Checkbox>
+                                            );
+                                            // }
+                                            // return null;
                                         })}
                                     </Checkbox.Group>
                                 </Form.Item>
@@ -354,15 +376,15 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                                     <Checkbox.Group onChange={handleRDSListChange} >
                                         {rdsCheckList.map((rds: any) => {
                                             //@ts-ignore
-                                            if (projectList.includes(rds.project_id)) {
-                                                return (
+                                            // if (projectList.includes(rds.project_id)) {
+                                            return (
 
-                                                    <Checkbox key={rds.id} value={rds.id} >
-                                                        {rds.name}
-                                                    </Checkbox>
-                                                );
-                                            }
-                                            return null;
+                                                <Checkbox key={rds.id} value={rds.id} >
+                                                    {rds.name}
+                                                </Checkbox>
+                                            );
+                                            // }
+                                            // return null;
                                         })}
                                     </Checkbox.Group>
                                 </Form.Item>
@@ -370,15 +392,15 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                                     <Checkbox.Group onChange={handleVMListChange}>
                                         {vmCheckList.map((rds: any) => {
                                             //@ts-ignore
-                                            if (projectList.includes(rds.project_id)) {
-                                                return (
+                                            // if (projectList.includes(rds.project_id)) {
+                                            return (
 
-                                                    <Checkbox key={rds.id} value={rds.id} >
-                                                        {rds.name}
-                                                    </Checkbox>
-                                                );
-                                            }
-                                            return null;
+                                                <Checkbox key={rds.id} value={rds.id} >
+                                                    {rds.name}
+                                                </Checkbox>
+                                            );
+                                            // }
+                                            // return null;
                                         })}
                                     </Checkbox.Group>
                                 </Form.Item>

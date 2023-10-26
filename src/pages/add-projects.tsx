@@ -112,7 +112,6 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
             }
         }).then((response: any) => {
             const { ec2_instance_list, rds_identifiers, project_details, vmList } = response.data;
-            debugger;
             // console.log(response.data);
             const updatedec2List: any = ec2_instance_list
                 .filter((topItem: any) =>
@@ -128,8 +127,10 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
             setRDS(updatedrdsList)
             // setVM(vmList);
             // setFormValues(...formValues,{ id: selectedId, name: name, ec2Instances: selectedEc2, rdsIdentifiers: selectedRDS } )
-            setEC2List(ec2_instance_list);
-            setRDSList(rds_identifiers);
+            var filtered_ec2_list = ec2_instance_list.filter((item: any) => !item.status.includes("termin"));
+            var filtered_rds_list = rds_identifiers.filter((item: any) => !item.status.includes("delet"));
+            setEC2List(filtered_ec2_list);
+            setRDSList(filtered_rds_list);
             setVMList(vmList)
             form.setFieldsValue({ id: selectedId, name: name, ec2Instances: selectedEc2, rdsIdentifiers: selectedRDS })
 
@@ -243,11 +244,12 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                             >
                                 <Checkbox.Group name="ec2Instances" defaultValue={selectedEc2}>
                                     {ec2List.map((ec2: any) => (
-                                        <Checkbox key={ec2.id} value={ec2.id} disabled={(action == "add" && ec2.is_mapped)} checked={action == "edit" ? ec2.checked : false}>
+                                        <Checkbox key={ec2.id} value={ec2.id} checked={action == "edit" ? ec2.checked : false}>
                                             {ec2.name}
                                         </Checkbox>
                                     ))}
                                 </Checkbox.Group>
+                                {/* disabled={(action == "add" && ec2.is_mapped)} */}
                             </Form.Item>
                             <Form.Item
                                 label="RDS Identifiers"
@@ -256,10 +258,11 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                             >
                                 <Checkbox.Group name="rdsIdentifiers" defaultValue={selectedRDS}>
                                     {rdsList.map((rds: any) => (
-                                        <Checkbox key={rds.id} value={rds.id} disabled={(action == "add" && rds.is_mapped)} checked={action == "edit" ? rds.checked : false}>
+                                        <Checkbox key={rds.id} value={rds.id} checked={action == "edit" ? rds.checked : false}>
                                             {rds.name}
                                         </Checkbox>
                                     ))}
+                                    {/* disabled={(action == "add" && rds.is_mapped)}  */}
                                 </Checkbox.Group>
                             </Form.Item>
                             <Form.Item
@@ -269,10 +272,11 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                             >
                                 <Checkbox.Group name="vmInstances" defaultValue={selectedVM}>
                                     {vmList.map((rds: any) => (
-                                        <Checkbox key={rds.id} value={rds.id} disabled={rds.is_mapped}>
+                                        <Checkbox key={rds.id} value={rds.id}>
                                             {rds.name}
                                         </Checkbox>
                                     ))}
+                                    {/* disabled={rds.is_mapped} */}
                                 </Checkbox.Group>
                             </Form.Item>
                             <Form.Item>

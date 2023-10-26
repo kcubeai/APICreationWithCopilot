@@ -39,19 +39,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         }
         try {
-
+            const username = await DBCONNECT(`select username from user_detail where id=${userID}`)
             if (type == "EC2") {
                 if (action == 'stop') {
                     await utils.ec2.stopInstances({ InstanceIds: [instanceId] }).promise();
-                    const result = await DBCONNECT(`Update ec2_instances set isstopped=true,status='stopped',state_changed_date=NOW() where id='${instanceId}'`)
-                    const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time) values(${userID},'stopped AWS EC2-instance ${instanceId}',NOW())`);
+                    const result = await DBCONNECT(`Update ec2_instances set isstopped=true,status='stopped',state_changed_date=NOW() where id='${instanceId}' returning name;`)
+                    const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'stopped AWS EC2-instance "${result.rows[0].name}" with id ${instanceId}',NOW(),'${username.rows[0].username}')`);
                     logger.info(`Instance ${instanceId} stopped successfully.`);
                     res.status(200).json({ message: `Instance ${instanceId} stopped successfully.` });
                 } else if (action == "start") {
 
                     await utils.ec2.startInstances({ InstanceIds: [instanceId] }).promise();
-                    const result = await DBCONNECT(`Update ec2_instances set isstopped=false,status='running',state_changed_date=NOW() where id='${instanceId}'`)
-                    const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time) values(${userID},'started AWS EC2-instance ${instanceId}',NOW())`);
+                    const result = await DBCONNECT(`Update ec2_instances set isstopped=false,status='running',state_changed_date=NOW() where id='${instanceId}' returning name;`)
+                    const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'started AWS EC2-instance "${result.rows[0].name}" with id ${instanceId}',NOW(),'${username.rows[0].username}')`);
                     logger.info(`Instance ${instanceId} initiated successfully.`);
                     res.status(200).json({ message: `Instance ${instanceId} initiated successfully.` });
                 } else {
@@ -63,15 +63,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 //@ts-ignore
                 if (action == 'stop') {
                     await utils.rds.stopDBInstance({ DBInstanceIdentifier: instanceId }).promise();
-                    const result = await DBCONNECT(`Update rds_identifiers set isstopped=true,status='stopped',state_changed_date=NOW() where id='${instanceId}'`)
-                    const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time) values(${userID},'stopped AWS RDS-identifier ${instanceId}',NOW())`);
+                    const result = await DBCONNECT(`Update rds_identifiers set isstopped=true,status='stopped',state_changed_date=NOW() where id='${instanceId}' returning name;`)
+                    const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'stopped AWS RDS-identifier "${result.rows[0].name}" with id ${instanceId}',NOW(),'${username.rows[0].username}')`);
                     logger.info(`RDS ${instanceId} stopped successfully.`);
                     res.status(200).json({ message: `RDS - ${instanceId} stopped successfully.` });
                 } else if (action == "start") {
 
                     await utils.rds.startDBInstance({ DBInstanceIdentifier: instanceId }).promise();
-                    const result = await DBCONNECT(`Update rds_identifiers set isstopped=false,status='available',state_changed_date=NOW() where id='${instanceId}'`)
-                    const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time) values(${userID},'started AWS RDS-identifier ${instanceId}',NOW())`);
+                    const result = await DBCONNECT(`Update rds_identifiers set isstopped=false,status='available',state_changed_date=NOW() where id='${instanceId}' returning name;`)
+                    const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'started AWS RDS-identifier "${result.rows[0].name}" with id ${instanceId}',NOW(),'${username.rows[0].username}')`);
                     logger.info(`RDS ${instanceId} initiated successfully.`);
                     res.status(200).json({ message: `RDS - ${instanceId} initiated successfully.` });
                 } else {
@@ -90,8 +90,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     }
                     const response = await compute.instances.stop(headers);
                     if (response.status == 200) {
-                        const result = await DBCONNECT(`Update vm_instances set isstopped=true,status='TERMINATED',state_changed_date=NOW() where id='${instanceId}'`)
-                        const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time) values(${userID},'stopped GCP VM-instance ${instanceId}',NOW())`);
+                        const result = await DBCONNECT(`Update vm_instances set isstopped=true,status='TERMINATED',state_changed_date=NOW() where id='${instanceId}' returning name;`)
+                        const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'stopped GCP VM-instance "${result.rows[0].name}" with id ${instanceId}',NOW(),'${username.rows[0].username}')`);
                         logger.info(`VM ${instanceId} stopped successfully.`);
                         res.status(200).json({ message: `VM - ${instanceId} stopped successfully.` });
                     }
@@ -106,8 +106,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     }
                     const response = await compute.instances.start(headers);
                     if (response.status == 200) {
-                        const result = await DBCONNECT(`Update vm_instances set isstopped=false,status='RUNNING',state_changed_date=NOW() where id='${instanceId}'`)
-                        const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time) values(${userID},'started GCP VM-instance ${instanceId}',NOW())`);
+                        const result = await DBCONNECT(`Update vm_instances set isstopped=false,status='RUNNING',state_changed_date=NOW() where id='${instanceId}' returning name;`)
+                        const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'started GCP VM-instance "${result.rows[0].name}" with id ${instanceId}',NOW(),'${username.rows[0].username}')`);
                         logger.info(`RDS ${instanceId} initiated successfully.`);
                         res.status(200).json({ message: `RDS - ${instanceId} initiated successfully.` });
                     }
@@ -115,6 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
 
         } catch (error: any) {
+            console.log(error)
             if (error.statusCode == 403) {
                 logger.error(`[${req.method} ${req.url}] Unauthorized Action`);
                 res.status(403).json({ error: 'Unauthorized Action' });

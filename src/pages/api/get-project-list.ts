@@ -49,7 +49,7 @@ export default async function handler(req: any, res: any) {
                     res.status(500).json({ message: 'Error in fetching the project list' });
                 }
             } else if (isAdmin) {
-                let query = await DBCONNECT(`SELECT project_id FROM users_projects where user_id=${userID}`);
+                let query = await DBCONNECT(`SELECT project_id FROM users_assigned_with_projects where user_id=${userID}`);
                 var project_ids = query.rows.map((item: any) => item.project_id)
                 let list_query = `Select * from projects where id in (${project_ids})`
                 // const result = await DBCONNECT(list_query);
@@ -69,9 +69,15 @@ export default async function handler(req: any, res: any) {
             }
         } else {
             const project_detail = await DBCONNECT(`Select * from projects where id=${id}`)
-            const aws_ec2_list = await DBCONNECT(`Select * from ec2_instances where project_id=${id}`)
-            const aws_rds_list = await DBCONNECT(`Select * from rds_identifiers where project_id=${id}`)
-            const gcp_vm_list = await DBCONNECT(`Select * from vm_instances where project_id=${id}`)
+            const ec2_list = `select * from ec2_instances where id in (select service_id from service_assigned_with_projects where project_id=${id} and service_type='ec2')`
+            const rds_list = `select * from rds_identifiers where id in (select service_id from service_assigned_with_projects where project_id=${id} and service_type='rds')`
+            const vm_list = `select * from vm_instances where id in (select service_id from service_assigned_with_projects where project_id=${id} and service_type='vm')`
+            // const aws_ec2_list = await DBCONNECT(`Select * from ec2_instances where project_id=${id}`)
+            // const aws_rds_list = await DBCONNECT(`Select * from rds_identifiers where project_id=${id}`)
+            // const gcp_vm_list = await DBCONNECT(`Select * from vm_instances where project_id=${id}`)
+            const aws_ec2_list = await DBCONNECT(ec2_list)
+            const aws_rds_list = await DBCONNECT(rds_list)
+            const gcp_vm_list = await DBCONNECT(vm_list)
             res.status(200).json({ aws_ec2_list: aws_ec2_list.rows, aws_rds_list: aws_rds_list.rows, project_details: project_detail.rows[0], gcp_vm_list: gcp_vm_list.rows })
         }
     } else {

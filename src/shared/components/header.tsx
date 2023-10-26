@@ -23,7 +23,7 @@ export default function HeaderComponent(props: any) {
                 'Authorization': `${token}`,
             }
         }).then((response: any) => {
-            // console.log(response);
+            console.log(response);
             notification.success({
                 message: 'Success',
                 description: 'synced successfully',

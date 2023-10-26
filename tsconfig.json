@@ -27,7 +27,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "*.ts"
+    "*.ts",
+    "scheduler.js"
   ],
   "exclude": [
     "node_modules"

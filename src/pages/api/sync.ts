@@ -9,6 +9,8 @@ const sqladmin = google.sqladmin('v1beta4')
 export default async function getRDSInstanceListandSaveitinDB(request: NextApiRequest, response: NextApiResponse) {
     try {
         const ec2Instances = await utils.ec2.describeInstances().promise();
+        // const terminatedinstances = await utils.ec2.describeInstances({ Filters: [{ Name: 'instance-state-name', Values: ['terminated'] }] }).promise();
+        // console.log(terminatedinstances, ec2Instances)
         if (ec2Instances && ec2Instances.Reservations && ec2Instances.Reservations.length > 0) {
 
             for (const reservation of ec2Instances.Reservations) {
@@ -21,9 +23,17 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
                             const insert = await DBCONNECT(`INSERT INTO public.ec2_instances (id, name, is_mapped, privateIp, public_ip,status, isstopped) VALUES ('${instance.InstanceId}','${instance.KeyName}',false,'${instance.PrivateIpAddress}','${instance.PublicIpAddress}','${instance.State?.Name}',${status})`)
                         } else {
                             //@ts-ignore
+                            // if (instance.State.Name?.includes('terminated')) {
+                            //     //@ts-ignore
+                            //     const insert = await DBCONNECT(`UPDATE public.ec2_instances SET project_id=null, is_mapped=${isavail.rows[0].is_mapped}, isstopped=true, privateIp='${instance.PrivateIpAddress}', public_ip='${instance.PublicIpAddress}',status='${instance.State.Name}' where id='${instance.InstanceId}'`)
+
+                            // } else {
+                            //@ts-ignore
                             var status = instance.State.Name?.includes('stop') ? true : false;
                             //@ts-ignore
                             const insert = await DBCONNECT(`UPDATE public.ec2_instances SET is_mapped=${isavail.rows[0].is_mapped}, isstopped=${status}, privateIp='${instance.PrivateIpAddress}', public_ip='${instance.PublicIpAddress}',status='${instance.State.Name}' where id='${instance.InstanceId}'`)
+
+                            // }
 
                         }
                     };
@@ -31,6 +41,8 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
             };
         }
         const rdsInstances = await utils.rds.describeDBInstances().promise();
+        // const terminatedIdentifiers = await utils.rds.describeDBInstances({ Filters: [{ Name: 'db-instance-status', Values: ['deleted'] }] }).promise();
+        // console.log(terminatedIdentifiers)
         if (rdsInstances && rdsInstances.DBInstances && rdsInstances.DBInstances.length > 0) {
 
             for (const instance of rdsInstances.DBInstances) {
@@ -40,10 +52,15 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
                     var status = instance.DBInstanceStatus?.includes('stop') ? true : false;
                     const insert = await DBCONNECT(`INSERT INTO public.rds_identifiers (id, name, is_mapped, privateIp, public_ip,status, isstopped) VALUES ('${instance.DBInstanceIdentifier}','${instance.DBInstanceIdentifier}',false,'${instance.DBInstanceArn}','${instance.Endpoint?.Address}','${instance.DBInstanceStatus}',${status})`)
                 } else {
+                    // if (instance.DBInstanceStatus?.includes('delet')) {
+                    //     //@ts-ignore
+                    //     const insert = await DBCONNECT(`UPDATE public.rds_identifiers SET project_id=null, is_mapped=${isavail.rows[0].is_mapped}, isstopped=true, privateIp='${instance.DBInstanceArn}', public_ip='${instance.Endpoint?.Address}',status='${instance.DBInstanceStatus}' where id='${instance.DBInstanceIdentifier}'`)
+
+                    // } else {
                     //@ts-ignore
                     var status = instance.DBInstanceStatus?.includes('stop') ? true : false;
                     const insert = await DBCONNECT(`UPDATE public.rds_identifiers SET is_mapped=${isavail.rows[0].is_mapped}, isstopped=${status}, privateIp='${instance.DBInstanceArn}', public_ip='${instance.Endpoint?.Address}',status='${instance.DBInstanceStatus}' where id='${instance.DBInstanceIdentifier}'`)
-
+                    // }
                 }
             }
         }
@@ -100,6 +117,7 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
 
     }
     catch (error) {
+        console.log(error)
         response.status(500).json({ error: 'Sync error', message: error })
     }
 
