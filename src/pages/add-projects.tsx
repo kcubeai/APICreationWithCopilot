@@ -146,6 +146,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                     isSuperAdmin,
                 }
             }).then((response: any) => {
+                debugger;
                 if (id == "") {
                     setProjects(response.data.projectList)
                 } else {
@@ -315,6 +316,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
 
     })
     const data: any = { projectList }
+    console.log(projectList)
     // Pass data to the page via props
     return { props: { data } }
 }
