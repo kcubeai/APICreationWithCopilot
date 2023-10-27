@@ -16,11 +16,11 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
             for (const reservation of ec2Instances.Reservations) {
                 if (reservation.Instances && reservation.Instances.length > 0) {
                     for (const instance of reservation.Instances) {
-                        const isavail = await DBCONNECT(`Select is_mapped from public.ec2_instances where id='${instance.InstanceId}'`);
+                        const isavail = await DBCONNECT(`Select * from public.ec2_instances where id='${instance.InstanceId}'`);
                         if (isavail.rows.length == 0) {
                             //@ts-ignore
                             var status = instance.State.Name?.includes('stop') ? true : false;
-                            const insert = await DBCONNECT(`INSERT INTO public.ec2_instances (id, name, is_mapped, privateIp, public_ip,status, isstopped) VALUES ('${instance.InstanceId}','${instance.KeyName}',false,'${instance.PrivateIpAddress}','${instance.PublicIpAddress}','${instance.State?.Name}',${status})`)
+                            const insert = await DBCONNECT(`INSERT INTO public.ec2_instances (id, name,  privateIp, public_ip,status, isstopped) VALUES ('${instance.InstanceId}','${instance.KeyName}','${instance.PrivateIpAddress}','${instance.PublicIpAddress}','${instance.State?.Name}',${status})`)
                         } else {
                             //@ts-ignore
                             // if (instance.State.Name?.includes('terminated')) {
@@ -31,7 +31,7 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
                             //@ts-ignore
                             var status = instance.State.Name?.includes('stop') ? true : false;
                             //@ts-ignore
-                            const insert = await DBCONNECT(`UPDATE public.ec2_instances SET is_mapped=${isavail.rows[0].is_mapped}, isstopped=${status}, privateIp='${instance.PrivateIpAddress}', public_ip='${instance.PublicIpAddress}',status='${instance.State.Name}' where id='${instance.InstanceId}'`)
+                            const insert = await DBCONNECT(`UPDATE public.ec2_instances SET  isstopped=${status}, privateIp='${instance.PrivateIpAddress}', public_ip='${instance.PublicIpAddress}',status='${instance.State.Name}' where id='${instance.InstanceId}'`)
 
                             // }
 
@@ -46,11 +46,11 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
         if (rdsInstances && rdsInstances.DBInstances && rdsInstances.DBInstances.length > 0) {
 
             for (const instance of rdsInstances.DBInstances) {
-                const isavail = await DBCONNECT(`Select is_mapped from public.rds_identifiers where id='${instance.DBInstanceIdentifier}'`);
+                const isavail = await DBCONNECT(`Select * from public.rds_identifiers where id='${instance.DBInstanceIdentifier}'`);
                 if (isavail.rows.length == 0) {
                     //@ts-ignore
                     var status = instance.DBInstanceStatus?.includes('stop') ? true : false;
-                    const insert = await DBCONNECT(`INSERT INTO public.rds_identifiers (id, name, is_mapped, privateIp, public_ip,status, isstopped) VALUES ('${instance.DBInstanceIdentifier}','${instance.DBInstanceIdentifier}',false,'${instance.DBInstanceArn}','${instance.Endpoint?.Address}','${instance.DBInstanceStatus}',${status})`)
+                    const insert = await DBCONNECT(`INSERT INTO public.rds_identifiers (id, name,  privateIp, public_ip,status, isstopped) VALUES ('${instance.DBInstanceIdentifier}','${instance.DBInstanceIdentifier}','${instance.DBInstanceArn}','${instance.Endpoint?.Address}','${instance.DBInstanceStatus}',${status})`)
                 } else {
                     // if (instance.DBInstanceStatus?.includes('delet')) {
                     //     //@ts-ignore
@@ -59,7 +59,7 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
                     // } else {
                     //@ts-ignore
                     var status = instance.DBInstanceStatus?.includes('stop') ? true : false;
-                    const insert = await DBCONNECT(`UPDATE public.rds_identifiers SET is_mapped=${isavail.rows[0].is_mapped}, isstopped=${status}, privateIp='${instance.DBInstanceArn}', public_ip='${instance.Endpoint?.Address}',status='${instance.DBInstanceStatus}' where id='${instance.DBInstanceIdentifier}'`)
+                    const insert = await DBCONNECT(`UPDATE public.rds_identifiers SET  isstopped=${status}, privateIp='${instance.DBInstanceArn}', public_ip='${instance.Endpoint?.Address}',status='${instance.DBInstanceStatus}' where id='${instance.DBInstanceIdentifier}'`)
                     // }
                 }
             }
@@ -76,16 +76,16 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
         if (vmList.status == 200) {
             if (vmList.data.items?.length > 0) {
                 for (const instance of vmList.data.items) {
-                    const isavail = await DBCONNECT(`Select is_mapped from public.vm_instances where id='${instance.id}'`);
+                    const isavail = await DBCONNECT(`Select * from public.vm_instances where id='${instance.id}'`);
                     // console.log(instance.networkInterfaces[0].networkIP)
                     if (isavail.rows.length == 0) {
                         //@ts-ignore
                         var status = instance.status?.includes('RUNNING') ? false : true;
-                        const insert = await DBCONNECT(`INSERT INTO public.vm_instances (id, name, is_mapped, privateIp, status, isstopped) VALUES ('${instance.id}','${instance.name}',false,'${instance.networkInterfaces[0].networkIP}','${instance.status}',${status})`)
+                        const insert = await DBCONNECT(`INSERT INTO public.vm_instances (id, name,  privateIp, status, isstopped) VALUES ('${instance.id}','${instance.name}','${instance.networkInterfaces[0].networkIP}','${instance.status}',${status})`)
                     } else {
                         //@ts-ignore
                         var status = instance.status?.includes('RUNNING') ? false : true;
-                        const insert = await DBCONNECT(`UPDATE public.vm_instances SET is_mapped=${isavail.rows[0].is_mapped}, isstopped=${status}, privateIp='${instance.networkInterfaces[0].networkIP}',status='${instance.status}' where id='${instance.id}'`)
+                        const insert = await DBCONNECT(`UPDATE public.vm_instances SET isstopped=${status}, privateIp='${instance.networkInterfaces[0].networkIP}',status='${instance.status}' where id='${instance.id}'`)
 
                     }
                 }
