@@ -40,7 +40,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
             dataIndex: 'edit',
             key: 'edit',
             render: (text: string, record: any) => {
-                return <Button disabled type="primary" onClick={() => editProject(record)}>Edit</Button>;
+                return <Button type="primary" onClick={() => editProject(record)}>Edit</Button>;
             }
         },
         {
