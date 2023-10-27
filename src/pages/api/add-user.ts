@@ -45,25 +45,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             } 
             
                // else if condition to edit user
-               else if (action == 'edit') {
-                let isadmin = role == "isadmin" ? true : false;
-                let issuperadmin = role == "issuperadmin" ? false : true;
-                let isuser = role == "isuser" ? true : false;
-                const update_user_query = await DBCONNECT(`update user_detail set username='${username}',password='${password}',isadmin=${isadmin},issuperadmin=${issuperadmin},isuser=${isuser} where id=${id}`)
-                const user_list = await DBCONNECT('select * from user_detail where isactive=true');
-                res.status(200).json({ status: 200, message: 'User updated successfully', userList: user_list.rows });
-            }
+            //    else if (action == 'ed') {
+            //     let isadmin = role == "isadmin" ? true : false;
+            //     let issuperadmin = role == "issuperadmin" ? false : true;
+            //     let isuser = role == "isuser" ? true : false;
+            //     const update_user_query = await DBCONNECT(`update user_detail set username='${username}',password='${password}',isadmin=${isadmin},issuperadmin=${issuperadmin},isuser=${isuser} where id=${id}`)
+            //     const user_list = await DBCONNECT('select * from user_detail where isactive=true');
+            //     res.status(200).json({ status: 200, message: 'User updated successfully', userList: user_list.rows });
+            // }
+
+            // else if (action == 'get') {
+            //     // view particular user details
+            //     const user_detail = await DBCONNECT(`select * from public.user_detail where id=${id}`);
+            //     // const user_project = await DBCONNECT(`select project_id from users_projects where user_id=${id}`);
+            //     // const user_ec2 = await DBCONNECT(`select instance_id from users_ec2 where user_id=${id}`);
+            //     // const user_rds = await DBCONNECT(`select identifier_id from users_rds where user_id=${id}`);
+
+            //     // const user_vm = await DBCONNECT(`select instance_id from users_vm where user_id=${id}`);
+            //     // res.status(200).json({ status: 200, message: 'User Details', userDetail: user_detail.rows, userProject: user_project.rows, userEc2: user_ec2.rows, userRds: user_rds.rows, userVm: user_vm.rows });
+            //     res.status(200).json({ status: 200, message: 'User Details', user_detail});
+            // }
 
             else if (action == 'get') {
-                // view particular user details
-                const user_detail = await DBCONNECT(`select * from user_detail where id=${id}`);
-                // const user_project = await DBCONNECT(`select project_id from users_projects where user_id=${id}`);
-                // const user_ec2 = await DBCONNECT(`select instance_id from users_ec2 where user_id=${id}`);
-                // const user_rds = await DBCONNECT(`select identifier_id from users_rds where user_id=${id}`);
-
-                // const user_vm = await DBCONNECT(`select instance_id from users_vm where user_id=${id}`);
-                // res.status(200).json({ status: 200, message: 'User Details', userDetail: user_detail.rows, userProject: user_project.rows, userEc2: user_ec2.rows, userRds: user_rds.rows, userVm: user_vm.rows });
-                res.status(200).json({ status: 200, message: 'User Details', userDetail: user_detail.rows});
+                
+                const user_data = await DBCONNECT(`select * from public.user_detail where id=${id}`);
+                res.status(200).json({ status: 200, message: 'User Details', user_data});
             }
 
 

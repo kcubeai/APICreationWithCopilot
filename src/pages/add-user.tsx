@@ -9,6 +9,8 @@ import Head from "next/head";
 import HeaderComponent from "@/shared/components/header";
 import axios from "axios";
 import { GetServerSideProps } from "next";
+import { set } from "firebase/database";
+import { idText } from "typescript";
 export default function AddUserWithNamePasswordEmail({ data }: any) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -23,12 +25,14 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const [rdsList, setRDSList] = useState([]);
     const [VMList, setVMList] = useState([]); isAdmin
     const [showAdd, setShowAdd] = useState<boolean>(false);
+    const [showEdit, setShowEdit] = useState<boolean>(false);
     const [userList, setUserList] = useState(data.userList ? data.userList : [])
     const [filterUserList, setFilterList] = useState<any>(userList);
     const [projectCheckList, setProjectCheckList] = useState(data.projectList ? data.projectList : []);
     const [ec2CheckList, setEc2CheckList] = useState(data.ec2List ? data.ec2List : []);
     const [rdsCheckList, setRDSCheckList] = useState(data.rdsList ? data.rdsList : []);
-    const [vmCheckList, setVMCheckList] = useState(data.vmList ? data.vmList : [])
+    const [vmCheckList, setVMCheckList] = useState(data.vmList ? data.vmList : []);
+    
     const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setUsername(event.target.value);
     };
@@ -73,7 +77,16 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                 }
                 else{
                     //render button with onclick function to view the respective user details
-                    return <Button  type="primary" onClick={() => viewUser(record)}>Edit</Button>;
+                    return <Button  type="primary" //redirect to the [edit-user].tsx page with the respective user id
+                    onClick={() => {
+                        // console.log('recoooooord',record)
+                        getUserData(`${record.id}`);
+                        console.log(record)
+                        // getUserList( );
+                        // form.resetFields();
+                        setShowEdit(true);
+                        setShowAdd(true)}}
+                    >Edit</Button>;
     
                 }
             }
@@ -103,6 +116,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                 });
                 form.resetFields();
                 setShowAdd(false)
+                setShowEdit(false)
             }
         }, (error: any) => {
             notification.error({
@@ -137,64 +151,72 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     };
 
 // function to view the respective user details
-const viewUser = (record: any) => {
-    //api with action=get
-    axios.post('/api/add-user', { id: record.id }, { headers: { "authorization": token, action: 'get' } }).then((response: any) => {
-        if (response.data.status == 200) {
-            // debugger;
-            setUserList(response.data.userList)
-            getUserList()
-            notification.success({
-                message: 'Success',
-                description: "User Edited successfully",
-                placement: 'topRight',
-                duration: 3
-            });
-            form.resetFields();
-            setShowAdd(false)
+// const viewUser = (record: any) => {
+//     //api with action=get
+//     axios.post('/api/add-user', { id: record.id }, { headers: { "authorization": token, action: 'get' } }).then((response: any) => {
+//         if (response.data.status == 200) {
+//             // debugger;
+//             setUserList(response.data.userList)
+//             getUserList()
+//             notification.success({
+//                 message: 'Success',
+//                 description: "User Edited successfully",
+//                 placement: 'topRight',
+//                 duration: 3
+//             });
+//             form.resetFields();
+//             setShowAdd(false)
+//         }
+//     }, (error: any) => {
+//         notification.error({
+//             message: 'Error',
+//             description: "Issue in editing USers",
+//             placement: 'topRight',
+//             duration: 3
+//         });
+//     })
+// }
+
+//getUserList api to get record particular user detail if there is id
+// const getUserList = (id: any) => {
+        const getUserData = async (id: any) => {
+            try {
+                axios.get('/api/get-user-list', {
+                    params: { id },
+                    headers: {"authorization": token, 
+                    // id,
+                    
+                    }
+            }).then((response: any) => {
+                setUserList(response.data.userList);
+                console.log(response.data.userList);
+            })
+        } catch (error) {
+            console.error(error);
         }
-    }, (error: any) => {
-        notification.error({
-            message: 'Error',
-            description: "Issue in editing USers",
-            placement: 'topRight',
-            duration: 3
-        });
-    })
-}
-
-
-    const editUser = (record: any) => {
-        axios.post('/api/add-user', { id: record.id }, { headers: { "authorization": token, action: 'edit' } }).then((response: any) => {
-            if (response.data.status == 200) {
-                // debugger;
-                setUserList(response.data.userList)
-                getUserList()
-                notification.success({
-                    message: 'Success',
-                    description: "User Edited successfully",
-                    placement: 'topRight',
-                    duration: 3
-                });
-                form.resetFields();
-                setShowAdd(false)
-            }
-        }, (error: any) => {
-            notification.error({
-                message: 'Error',
-                description: "Issue in editing USers",
-                placement: 'topRight',
-                duration: 3
-            });
-        })
-    }
-
-
+    };
+// const getUserList = async () => {
+//     await axios.get('/api/get-user-list', { headers: { Authorization: token , id: ''} }).then((response: any) => {
+//         if (response.data.userList && response.data.userList.length > 0) {
+//             const userListWithNames = response.data.userList.map((user: any) => {
+//                 return {
+//                     ...user,
+//                     name: `${user.firstName} ${user.lastName}`
+//                 }
+//             });
+//             setUserList(userListWithNames);
+//             console.log(userListWithNames);
+//         } else {
+//             setUserList([])
+//         }
+//     })
+// }
 
     const getUserList = async () => {
-        await axios.get('/api/get-user-list', { headers: { Authorization: token } }).then((response: any) => {
+        await axios.get('/api/get-user-list', { headers: { Authorization: token , id: ''} }).then((response: any) => {
             if (response.data.userList && response.data.userList.length > 0) {
                 setUserList(response.data.userList);
+                console.log(response.data.userList);
 
             } else {
                 setUserList([])
@@ -202,6 +224,7 @@ const viewUser = (record: any) => {
 
         })
     }
+    
     const handleAdminChange = (event: any) => {
         setAdmin(event.target.checked);
         if (event.target.checked) {
@@ -292,6 +315,7 @@ const viewUser = (record: any) => {
                 });
                 form.resetFields();
                 setShowAdd(false)
+                setShowEdit(false)
             }
         }, (error: any) => {
             notification.error({
@@ -339,13 +363,194 @@ const viewUser = (record: any) => {
             </Head>
             <HeaderComponent title="Users" />
             <Content style={{ padding: "50px", display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
-                {showAdd ?
+                            
+                    {showAdd ? (
+                        showEdit ? (
+                            //edit user content
+                            <div style={{ width: "50%" }}>
+                            <div style={{ marginBottom: "20px" }}>
+    
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <h1>EDIT Users</h1>
+                                    <Button type="primary" onClick={() => {
+    
+                                        getUserList()
+                                        form.getFieldsValue()
+                                        setShowAdd(false)
+                                        
+                                    }}>Back to List</Button>
+                                </div>
+    
+                            </div>
+                           
+                            <Form form={form}
+                                    name="basic"
 
-                    <div style={{ width: "50%" }}>
+                                    onFinish={handleSubmit}
+                                    // initialValues={{ remember: true }}
+                                    >
+
+
+
+                                {userList.map((user: any) => (
+                                <>
+                                    <Form.Item label="Username" name="username" rules={[{ required: true, message: 'Please input your username!' }]}>
+                                        <div key={user.id}>
+                                            <label>Name:</label>
+                                            <input type="text" value={user.username} readOnly />
+                                        </div>
+                                    </Form.Item>
+
+                                    <Form.Item label="Select Role"  name="role">
+                                    <div key={user.id}>
+                                            {userList.map((user: any) => (
+                                                <>
+                                                    {/* <Form.Item label="Username" name="username" rules={[{ required: true, message: 'Please input your username!' }]}>
+                                                        <div key={user.id}>
+                                                            <label>Name:</label>
+                                                            <input type="text" value={user.username} readOnly />
+                                                        </div>
+                                                    </Form.Item> */}
+
+
+                                                        <Form.Item
+                                                        label="Select Role"
+                                                        name="isadmin"
+                                                        key={user.id}
+                                                        rules={[{ required: true, message: 'Please select the status!' }]}
+                                                        initialValue={user.issuperadmin || user.isadmin || user.isuser}
+                                                        >
+                                                        <Radio.Group>
+                                                        {isSuperAdmin ? <Radio  value={user.issuperadmin} onChange={handleSuperAdminChange} disabled>Is Super Admin</Radio>: null}
+                                                        {isSuperAdmin ?<Radio  value={user.isadmin} onChange={handleAdminChange} >Is Admin</Radio> :null}
+                                                            {/* <Radio value={user.issuperadmin}>Is Super Admin</Radio> */}
+                                                            {/* <Radio value={user.isadmin}>Is Admin</Radio> */}
+                                                            {/* <Radio  value={user.isuser} onChange={handleAdminChange}>Is Admin</Radio> */}
+                                                            <Radio value={user.isuser} onChange={handleUserChange}>Is User</Radio>
+                                                        </Radio.Group>
+                                                        
+                                                        </Form.Item>
+                                                </>
+                                            ))}
+                                        </div>
+                                    </Form.Item>
+
+                                    {/* <Form.Item  label="Select Role"  name="isadmin"
+                                        key={user.id}
+                                        rules={[{ required: true, message: 'Please select the status!' }]}
+                                        initialValue={user.issuperadmin === true ? true : user.isadmin === true ? true : false}
+                                        >
+                                         <input type="text" value={user.isuser} readOnly />  
+                                        <Radio.Group>
+                                        <Radio value={user.issuperadmin}>Is Super Admin</Radio>
+    <Radio value={user.isadmin}>Is Admin</Radio>
+    <Radio value={user.isuser}>Is User</Radio>
+                                      
+                                        {isSuperAdmin ? <Radio  value={user.issuperadmin} onChange={handleSuperAdminChange} >Is Super Admin</Radio> : null}
+                                        {isSuperAdmin ? <Radio  value={user.isadmin} onChange={handleAdminChange} >Is Admin</Radio> : null}
+                                     
+                                       <Radio  value={user.isuser} onChange={handleAdminChange}>Is Admin</Radio>
+                                        </Radio.Group>
+                                    </Form.Item>
+                              */}
+                                
+                                
+                                
+                                {(isadmin || isuser) ?
+                                    <Form.Item name="projectList" label="Select Project(s)" rules={[{ required: (isuser || isadmin) ? true : false, message: "Please select at least one project" }]}>
+                                        <Checkbox.Group onChange={handleProjectListChange} >
+                                            {projectCheckList.map((ec2: any) => (
+                                                <Checkbox key={ec2.id} value={ec2.id}>
+                                                    {ec2.project_name}
+                                                </Checkbox>
+                                            ))}
+                                        </Checkbox.Group>
+                                    </Form.Item>
+                                    : null}
+                                
+                                {(isuser) ? <>
+                                    <Form.Item name="ec2List" label="Select EC2">
+                                        <Checkbox.Group onChange={handleEC2ListChange}>
+                                            {ec2CheckList.map((ec2: any) => {
+                                                //@ts-ignore
+                                                if (projectList.includes(ec2.project_id)) {
+                                                    return (
+                                                        <Checkbox key={ec2.id} value={ec2.id}>
+                                                            {ec2.name}
+                                                        </Checkbox>
+                                                    );
+                                                }
+                                                return null;
+                                            })}
+                                        </Checkbox.Group>
+                                    </Form.Item>
+                                    <Form.Item name="rdsList" label="Select RDS">
+                                        <Checkbox.Group onChange={handleRDSListChange} >
+                                            {rdsCheckList.map((rds: any) => {
+                                                //@ts-ignore
+                                                if (projectList.includes(rds.project_id)) {
+                                                    return (
+                                
+                                                        <Checkbox key={rds.id} value={rds.id} >
+                                                            {rds.name}
+                                                        </Checkbox>
+                                                    );
+                                                }
+                                                return null;
+                                            })}
+                                        </Checkbox.Group>
+                                    </Form.Item>
+                                    <Form.Item name="vmList" label="Select VM" >
+                                        <Checkbox.Group onChange={handleVMListChange}>
+                                            {vmCheckList.map((rds: any) => {
+                                                //@ts-ignore
+                                                if (projectList.includes(rds.project_id)) {
+                                                    return (
+                                
+                                                        <Checkbox key={rds.id} value={rds.id} >
+                                                            {rds.name}
+                                                        </Checkbox>
+                                                    );
+                                                }
+                                                return null;
+                                            })}
+                                        </Checkbox.Group>
+                                    </Form.Item>
+                                </>
+                                    : null}
+                                
+                                <Form.Item>
+                                    <Button
+                                        type="primary"
+                                        disabled={!isEntireValid()}
+                                        // onClick={() => { handleSubmit(form); }}
+                                    >
+                                        Edit User
+                                    </Button>
+                                </Form.Item>  
+                                </>       
+
+
+                                        ))}
+
+                            </Form>
+
+                        </div> 
+
+
+                     
+                        ) : (
+
+
+                        /* Content to render when showAdd is true and showEdit is false */
+                       
+
+
+                        <div style={{ width: "50%" }}>
                         <div style={{ marginBottom: "20px" }}>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <h1>Add Users</h1>
+                                <h1>ADD Users</h1>
                                 <Button type="primary" onClick={() => {
 
                                     getUserList()
@@ -458,15 +663,20 @@ const viewUser = (record: any) => {
                                 </Button>
                             </Form.Item>
                         </Form>
-                    </div> : <><div style={{ width: "100%" }}>
+                    </div> 
+                        )
+                    ) : (
+                        /* Content to render when showAdd is false */
+                        <div style={{ width: "100%" }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <h2>User List</h2>
-                            <Button type="primary" onClick={() => { setShowAdd(true); getProjectList(); }} >
+                            <Button type="primary" onClick={() => { setShowAdd(true); setShowEdit(false); getProjectList(); }} >
                                 Add User
                             </Button>
                         </div>
                         <Table columns={columns} dataSource={filterUserList} style={{ marginTop: '20px' }} />
-                    </div></>}
+                    </div>
+                    )}
 
             </Content>
         </Layout >
@@ -481,7 +691,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     var rdsList: any = [];
     var userList: any = []
     var vmList: any = [];
-    await axios.get(process.env.NEXT_PUBLIC_MOCK_PATH + '/api/get-user-list', { headers: { Authorization: process.env.NEXT_PUBLIC_APP_KEY } }).then((response: any) => {
+    await axios.get(process.env.NEXT_PUBLIC_MOCK_PATH + '/api/get-user-list', { headers: { Authorization: process.env.NEXT_PUBLIC_APP_KEY , id: ''} }).then((response: any) => {
         if (response.data.userList && response.data.userList.length > 0) {
             userList.push(...response.data.userList);
 
