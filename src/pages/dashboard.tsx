@@ -55,9 +55,9 @@ export default function Login() {
             render: (text: string, record: any) => {
                 if (record.state_changed_date != "") {
 
-                    var date = moment(record.state_changed_date).format('YYYY-MM-DD HH:mm:ss');
+                    var date = moment(record.state_changed_date).format('YYYY-MM-DD HH:mm');
                     // console.log()
-                    return date;
+                    return date + ` IST`;
                 } else {
                     return ""
                 }
@@ -113,9 +113,9 @@ export default function Login() {
             render: (text: string, record: any) => {
                 if (record.state_changed_date != "") {
 
-                    var date = moment(record.state_changed_date).format('YYYY-MM-DD HH:mm:ss');
+                    var date = moment(record.state_changed_date).format('YYYY-MM-DD HH:mm');
                     // console.log()
-                    return date;
+                    return date + ` IST`;
                 } else {
                     return ""
                 }
@@ -169,9 +169,9 @@ export default function Login() {
             render: (text: string, record: any) => {
                 if (record.state_changed_date != "") {
 
-                    var date = moment(record.state_changed_date).format('YYYY-MM-DD HH:mm:ss');
+                    var date = moment(record.state_changed_date).format('YYYY-MM-DD HH:mm');
                     // console.log()
-                    return date;
+                    return date + ` IST`;
                 } else {
                     return ""
                 }
@@ -213,6 +213,10 @@ export default function Login() {
                 if (response.status == 200) {
                     if (selectedType == "EC2") {
                         if (response.data.instanceList.length > 0) {
+                            response.data.instanceList.forEach((item: any) => {
+                                var project_string = item.project_name.map((value: any) => `${value}`).join(', ');
+                                item.project_name = project_string;
+                            })
                             setDataEC2(response.data.instanceList)
                         } else {
                             setDataEC2([])
@@ -221,6 +225,10 @@ export default function Login() {
                     }
                     if (selectedType == "RDS") {
                         if (response.data.instanceList.length > 0) {
+                            response.data.instanceList.forEach((item: any) => {
+                                var project_string = item.project_name.map((value: any) => `${value}`).join(', ');
+                                item.project_name = project_string;
+                            })
                             setDataRDS(response.data.instanceList)
                         } else {
                             setDataRDS([])
@@ -229,6 +237,10 @@ export default function Login() {
                     }
                     if (selectedType == "VM") {
                         if (response.data.instanceList.length > 0) {
+                            response.data.instanceList.forEach((item: any) => {
+                                var project_string = item.project_name.map((value: any) => `${value}`).join(', ');
+                                item.project_name = project_string;
+                            })
                             setDataVM(response.data.instanceList)
                         } else {
                             setDataVM([])

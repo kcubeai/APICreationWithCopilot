@@ -12,6 +12,7 @@ export default function Login() {
     const { setToken, setIsAdmin, setisUser, setIsSuperAdmin, setUserId } = useAuth()
     const router = useRouter()
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+
         event.preventDefault();
         try {
             //@ts-ignore
@@ -59,4 +60,3 @@ export default function Login() {
         </div>
     )
 }
-

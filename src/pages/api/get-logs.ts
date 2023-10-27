@@ -29,10 +29,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         try {
             if (selected_type == 'action_log') {
-                const log_list = await DBCONNECT(`SELECT * FROM user_action_logs WHERE log_time >= current_date - INTERVAL '2 days' order by log_time desc limit 50;`)
+                const log_list = await DBCONNECT(`SELECT * FROM user_action_logs WHERE user_name is not null and log_time >= current_date - INTERVAL '2 days' order by log_time desc limit 50;`)
                 res.status(200).json({ log_list: log_list.rows })
             } else if (selected_type == 'login_log') {
-                const log_list = await DBCONNECT(`SELECT * FROM user_logs WHERE last_login >= current_date - INTERVAL '5 days' order by last_login desc limit 50;`)
+                const log_list = await DBCONNECT(`SELECT * FROM user_logs WHERE user_name is not null and last_login >= current_date - INTERVAL '5 days' order by last_login desc limit 50;`)
                 res.status(200).json({ log_list: log_list.rows })
             }
         } catch (error) {

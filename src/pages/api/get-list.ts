@@ -40,24 +40,26 @@ export default async function handler(request: NextApiRequest, response: NextApi
         try {
             if (type == "EC2") {
 
-
                 if (id) {
                     const role = await DBCONNECT(`select isadmin,issuperadmin,isuser from user_detail where id=${id}`);
-
                     if (role.rows.length > 0) {
                         var instanceList: any = [];
                         if (role.rows[0].issuperadmin) {
-
+                            // const list_ec2 = `select * from ec2_instances where id in(select service_id from service_assigned_with_projects where service_type='ec2')`
                             const list = await DBCONNECT('SELECT * from ec2_instances');
                             if (list.rows.length > 0) {
                                 // list.rows.forEach((instance: any) => {
                                 for (const instance of list.rows) {
-                                    if (instance.project_id) {
-                                        const search = await DBCONNECT(`Select project_name from projects where id=${instance.project_id}`);
-                                        if (search.rows.length > 0) {
-                                            instance.project_name = search.rows[0].project_name;
-                                        }
-                                    }
+                                    // if (instance.project_id) {
+                                    const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${instance.id}') `)
+                                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${instance.id}'`)
+                                    console.log(search_query.rows[0].jsonb_agg)
+                                    // const search = await DBCONNECT(`Select project_name from projects where id=${instance.project_id}`);
+                                    // if (search.rows.length > 0) {
+                                    instance.project_name = search_query.rows[0].jsonb_agg;
+                                    // }
+                                    // }
+                                    console.log(instance)
                                     instanceList.push({
                                         id: instance.id,
                                         name: instance.name,
@@ -67,47 +69,29 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                         privateIp: instance.privateip,
                                         is_mapped: instance.is_mapped,
                                         project_name: instance.project_name ? instance.project_name : "",
-                                        state_changed_date: instance.state_changed_date ? instance.state_changed_date : ""
+                                        state_changed_date: instance.state_changed_date ? instance.state_changed_date : "",
+                                        project_ids: project_ids.rows[0].jsonb_agg
                                     });
                                 };
                             }
                             response.status(200).json({ instanceList });
                         }
                         if (role.rows[0].isadmin) {
-                            const listofProject = await DBCONNECT(`Select * from users_projects where user_id=${id}`);
+                            const listofProject = await DBCONNECT(`Select * from users_assigned_with_projects where user_id=${id}`);
                             if (listofProject.rows.length > 0) {
                                 for (const project of listofProject.rows) {
-                                    const search = await DBCONNECT(`Select project_name from projects where id=${project.project_id}`);
-                                    const ec2_list = await DBCONNECT(`Select * from ec2_instances where project_id=${project.project_id}`);
+                                    // const search = await DBCONNECT(`Select project_name from projects where id in${project.project_id}`);
+                                    // const ec2_list = await DBCONNECT(`Select * from ec2_instances where project_id=${project.project_id}`);
+                                    const ec2_list = await DBCONNECT(`Select * from ec2_instances where id in (select service_id from service_assigned_with_projects where project_id in (Select project_id from users_assigned_with_projects where user_id=${id}) )`)
                                     if (ec2_list.rows.length > 0) {
-                                        ec2_list.rows.forEach((item: any) => {
-                                            instanceList.push({
-                                                id: item.id,
-                                                name: item.name,
-                                                state: item.status,
-                                                isstopped: item.isstopped,
-                                                publicIp: item.public_ip,
-                                                privateIp: item.privateip,
-                                                is_mapped: item.is_mapped,
-                                                project_name: search.rows[0].project_name ? search.rows[0].project_name : "",
-                                                state_changed_date: item.state_changed_date ? item.state_changed_date : ""
-                                            });
-                                        })
-                                    }
-                                }
-                            }
-                            response.status(200).json({ instanceList });
-                        }
-                        if (role.rows[0].isuser) {
-                            const listofProject = await DBCONNECT(`Select * from users_ec2 where user_id=${id}`);
-                            if (listofProject.rows.length > 0) {
-                                for (const project of listofProject.rows) {
-                                    const ec2_list = await DBCONNECT(`Select * from ec2_instances where id='${project.instance_id}'`);
-                                    if (ec2_list.rows.length > 0) {
-                                        for (const item of ec2_list.rows) {
-                                            if (item.project_id) {
 
-                                                const search = await DBCONNECT(`Select project_name from projects where id=${item.project_id}`);
+                                        // ec2_list.rows.forEach((item: any) => {
+                                        for (const item of ec2_list.rows) {
+                                            const project_name =
+                                                await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}')`)
+                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
+                                            const isObjectWithIdPresent = instanceList.some((obj: any) => obj.id === item.id);
+                                            if (!isObjectWithIdPresent) {
 
                                                 instanceList.push({
                                                     id: item.id,
@@ -117,10 +101,45 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                                     publicIp: item.public_ip,
                                                     privateIp: item.privateip,
                                                     is_mapped: item.is_mapped,
-                                                    project_name: search.rows[0].project_name ? search.rows[0].project_name : "",
-                                                    state_changed_date: item.state_changed_date ? item.state_changed_date : ""
+                                                    project_name: project_name.rows[0].jsonb_agg ? project_name.rows[0].jsonb_agg : "",
+                                                    state_changed_date: item.state_changed_date ? item.state_changed_date : "",
+                                                    project_ids: project_ids.rows[0].jsonb_agg
                                                 });
                                             }
+                                            // })
+                                        }
+                                    }
+                                }
+                            }
+                            response.status(200).json({ instanceList });
+                        }
+                        if (role.rows[0].isuser) {
+                            const listofProject = await DBCONNECT(`Select * from users_assigned_with_ec2 where user_id=${id}`);
+                            if (listofProject.rows.length > 0) {
+                                for (const project of listofProject.rows) {
+                                    const ec2_list = await DBCONNECT(`Select * from ec2_instances where id='${project.instance_id}'`);
+
+                                    if (ec2_list.rows.length > 0) {
+                                        for (const item of ec2_list.rows) {
+                                            // if (item.project_id) {
+
+                                            //     const search = await DBCONNECT(`Select project_name from projects where id=${item.project_id}`);
+                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${project.instance_id}'`)
+                                            const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${project.instance_id}') `)
+
+                                            instanceList.push({
+                                                id: item.id,
+                                                name: item.name,
+                                                state: item.status,
+                                                isstopped: item.isstopped,
+                                                publicIp: item.public_ip,
+                                                privateIp: item.privateip,
+                                                is_mapped: item.is_mapped,
+                                                project_name: search_query.rows[0].jsonb_agg,
+                                                state_changed_date: item.state_changed_date ? item.state_changed_date : "",
+                                                project_ids: project_ids.rows[0].jsonb_agg
+                                            });
+                                            // }
                                         }
                                     }
                                 }
@@ -141,12 +160,16 @@ export default async function handler(request: NextApiRequest, response: NextApi
                             const list = await DBCONNECT('SELECT * from rds_identifiers');
                             if (list.rows.length > 0) {
                                 for (const instance of list.rows) {
-                                    if (instance.project_id) {
-                                        const search = await DBCONNECT(`Select project_name from projects where id=${instance.project_id}`);
-                                        if (search.rows.length > 0) {
-                                            instance.project_name = search.rows[0].project_name;
-                                        }
-                                    }
+                                    // if (instance.project_id) {
+                                    const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${instance.id}') `)
+                                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${instance.id}'`)
+                                    console.log(search_query.rows)
+                                    // const search = await DBCONNECT(`Select project_name from projects where id=${instance.project_id}`);
+                                    // if (search.rows.length > 0) {
+                                    //     instance.project_name = search.rows[0].project_name;
+                                    // }
+                                    instance.project_name = search_query.rows[0].jsonb_agg;
+                                    // }
                                     instanceList.push({
                                         id: instance.id,
                                         name: instance.name,
@@ -157,49 +180,30 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                         is_mapped: instance.is_mapped,
                                         project_name: instance.project_name ? instance.project_name : "",
 
-                                        state_changed_date: instance.state_changed_date ? instance.state_changed_date : ""
+                                        state_changed_date: instance.state_changed_date ? instance.state_changed_date : "",
+                                        project_ids: project_ids.rows[0].jsonb_agg
                                     });
                                 };
                             }
                             response.status(200).json({ instanceList });
                         }
                         if (role.rows[0].isadmin) {
-                            const listofProject = await DBCONNECT(`Select * from users_projects where user_id=${id}`);
+                            const listofProject = await DBCONNECT(`Select * from users_assigned_with_projects where user_id=${id}`);
                             if (listofProject.rows.length > 0) {
                                 for (const project of listofProject.rows) {
-                                    const search = await DBCONNECT(`Select project_name from projects where id=${project.project_id}`);
+                                    // const search = await DBCONNECT(`Select project_name from projects where id=${project.project_id}`);
 
-                                    const ec2_list = await DBCONNECT(`Select * from rds_identifiers where project_id=${project.project_id}`);
+                                    // const ec2_list = await DBCONNECT(`Select * from rds_identifiers where project_id=${project.project_id}`);
+                                    const ec2_list = await DBCONNECT(`Select * from rds_identifiers where id in (select service_id from service_assigned_with_projects where project_id in (Select project_id from users_assigned_with_projects where user_id=${id}) )`);
                                     if (ec2_list.rows.length > 0) {
-                                        ec2_list.rows.forEach((item: any) => {
-                                            instanceList.push({
-                                                id: item.id,
-                                                name: item.name,
-                                                state: item.status,
-                                                isstopped: item.isstopped,
-                                                publicIp: item.public_ip,
-                                                privateIp: item.privateip,
-                                                is_mapped: item.is_mapped,
-                                                project_name: search.rows[0].project_name ? search.rows[0].project_name : "",
-                                                state_changed_date: item.state_changed_date ? item.state_changed_date : ""
-                                            });
-                                        })
-                                    }
-                                }
-                            }
-
-                            response.status(200).json({ instanceList });
-                        }
-                        if (role.rows[0].isuser) {
-                            const listofProject = await DBCONNECT(`Select * from users_rds where user_id=${id}`);
-                            if (listofProject.rows.length > 0) {
-                                for (const project of listofProject.rows) {
-                                    const ec2_list = await DBCONNECT(`Select * from rds_identifiers where id='${project.identifier_id}'`);
-                                    if (ec2_list.rows.length > 0) {
+                                        // ec2_list.rows.forEach((item: any) => {
                                         for (const item of ec2_list.rows) {
-                                            if (item.project_id) {
-                                                const search = await DBCONNECT(`Select project_name from projects where id=${item.project_id}`);
+                                            const project_name =
+                                                await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}')`)
+                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
 
+                                            const isObjectWithIdPresent = instanceList.some((obj: any) => obj.id === item.id);
+                                            if (!isObjectWithIdPresent) {
                                                 instanceList.push({
                                                     id: item.id,
                                                     name: item.name,
@@ -208,10 +212,44 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                                     publicIp: item.public_ip,
                                                     privateIp: item.privateip,
                                                     is_mapped: item.is_mapped,
-                                                    project_name: search.rows[0].project_name ? search.rows[0].project_name : "",
-                                                    state_changed_date: item.state_changed_date ? item.state_changed_date : ""
+                                                    project_name: project_name.rows[0].jsonb_agg ? project_name.rows[0].jsonb_agg : "",
+                                                    state_changed_date: item.state_changed_date ? item.state_changed_date : "",
+                                                    project_ids: project_ids.rows[0].jsonb_agg
                                                 });
                                             }
+                                            // })
+                                        }
+                                    }
+                                }
+                            }
+
+                            response.status(200).json({ instanceList });
+                        }
+                        if (role.rows[0].isuser) {
+                            const listofProject = await DBCONNECT(`Select * from users_assigned_with_rds where user_id=${id}`);
+                            if (listofProject.rows.length > 0) {
+                                for (const project of listofProject.rows) {
+                                    const ec2_list = await DBCONNECT(`Select * from rds_identifiers where id='${project.identifier_id}'`);
+                                    if (ec2_list.rows.length > 0) {
+                                        for (const item of ec2_list.rows) {
+                                            // if (item.project_id) {
+                                            // const search = await DBCONNECT(`Select project_name from projects where id=${item.project_id}`);
+                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
+                                            const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}') `)
+
+                                            instanceList.push({
+                                                id: item.id,
+                                                name: item.name,
+                                                state: item.status,
+                                                isstopped: item.isstopped,
+                                                publicIp: item.public_ip,
+                                                privateIp: item.privateip,
+                                                is_mapped: item.is_mapped,
+                                                project_name: search_query.rows[0].jsonb_agg,
+                                                state_changed_date: item.state_changed_date ? item.state_changed_date : "",
+                                                project_ids: project_ids.rows[0].jsonb_agg
+                                            });
+                                            // }
 
                                         }
                                     }
@@ -233,12 +271,16 @@ export default async function handler(request: NextApiRequest, response: NextApi
                             const list = await DBCONNECT('SELECT * from vm_instances');
                             if (list.rows.length > 0) {
                                 for (const instance of list.rows) {
-                                    if (instance.project_id) {
-                                        const search = await DBCONNECT(`Select project_name from projects where id=${instance.project_id}`);
-                                        if (search.rows.length > 0) {
-                                            instance.project_name = search.rows[0].project_name;
-                                        }
-                                    }
+                                    // if (instance.project_id) {
+                                    const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${instance.id}') `)
+                                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${instance.id}'`)
+                                    console.log(search_query.rows)
+                                    // const search = await DBCONNECT(`Select project_name from projects where id=${instance.project_id}`);
+                                    // if (search.rows.length > 0) {
+                                    //     instance.project_name = search.rows[0].project_name;
+                                    // }
+                                    instance.project_name = search_query.rows[0].jsonb_agg;
+                                    // }
                                     instanceList.push({
                                         id: instance.id,
                                         name: instance.name,
@@ -248,51 +290,29 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                         is_mapped: instance.is_mapped,
                                         project_name: instance.project_name ? instance.project_name : "",
 
-                                        state_changed_date: instance.state_changed_date ? instance.state_changed_date : ""
+                                        state_changed_date: instance.state_changed_date ? instance.state_changed_date : "",
+                                        project_ids: project_ids.rows[0].jsonb_agg
                                     });
                                 };
                             }
                             response.status(200).json({ instanceList });
                         }
                         if (role.rows[0].isadmin) {
-                            const listofProject = await DBCONNECT(`Select * from users_projects where user_id=${id}`);
+                            const listofProject = await DBCONNECT(`Select * from users_assigned_with_projects where user_id=${id}`);
                             if (listofProject.rows.length > 0) {
                                 for (const project of listofProject.rows) {
-                                    const search = await DBCONNECT(`Select project_name from projects where id=${project.project_id}`);
+                                    // const search = await DBCONNECT(`Select project_name from projects where id=${project.project_id}`);
 
-                                    const ec2_list = await DBCONNECT(`Select * from vm_instances where project_id=${project.project_id}`);
-                                    if (ec2_list.rows.length > 0) {
-                                        ec2_list.rows.forEach((item: any) => {
-                                            instanceList.push({
-                                                id: item.id,
-                                                name: item.name,
-                                                state: item.status,
-                                                isstopped: item.isstopped,
-                                                publicIp: item.public_ip,
-                                                privateIp: item.privateip,
-                                                is_mapped: item.is_mapped,
-                                                project_name: search.rows[0].project_name ? search.rows[0].project_name : "",
-                                                state_changed_date: item.state_changed_date ? item.state_changed_date : ""
-                                            });
-                                        })
-                                    }
-                                }
-                            }
-
-                            response.status(200).json({ instanceList });
-                        }
-                        if (role.rows[0].isuser) {
-                            const listofProject = await DBCONNECT(`Select * from users_vm where user_id=${id}`);
-                            // console.log("project list............", listofProject.rows);
-                            if (listofProject.rows.length > 0) {
-                                for (const project of listofProject.rows) {
-                                    const ec2_list = await DBCONNECT(`Select * from vm_instances where id='${project.instance_id}'`);
+                                    // const ec2_list = await DBCONNECT(`Select * from vm_instances where project_id=${project.project_id}`);
+                                    const ec2_list = await DBCONNECT(`Select * from vm_instances where id in (select service_id from service_assigned_with_projects where project_id in (Select project_id from users_assigned_with_projects where user_id=${id}) )`)
                                     if (ec2_list.rows.length > 0) {
                                         for (const item of ec2_list.rows) {
-                                            if (item.project_id) {
-
-                                                const search = await DBCONNECT(`Select project_name from projects where id=${item.project_id}`);
-
+                                            // ec2_list.rows.forEach((item: any) => {
+                                            const project_name =
+                                                await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}')`)
+                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
+                                            const isObjectWithIdPresent = instanceList.some((obj: any) => obj.id === item.id);
+                                            if (!isObjectWithIdPresent) {
                                                 instanceList.push({
                                                     id: item.id,
                                                     name: item.name,
@@ -301,10 +321,47 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                                     publicIp: item.public_ip,
                                                     privateIp: item.privateip,
                                                     is_mapped: item.is_mapped,
-                                                    project_name: search.rows[0].project_name ? search.rows[0].project_name : "",
-                                                    state_changed_date: item.state_changed_date ? item.state_changed_date : ""
+                                                    project_name: project_name.rows[0].jsonb_agg ? project_name.rows[0].jsonb_agg : "",
+                                                    state_changed_date: item.state_changed_date ? item.state_changed_date : "",
+                                                    project_ids: project_ids.rows[0].jsonb_agg
                                                 });
                                             }
+                                            // })
+                                        }
+                                    }
+                                }
+                            }
+
+                            response.status(200).json({ instanceList });
+                        }
+                        if (role.rows[0].isuser) {
+                            const listofProject = await DBCONNECT(`Select * from users_assigned_with_vm where user_id=${id}`);
+                            // console.log("project list............", listofProject.rows);
+                            if (listofProject.rows.length > 0) {
+                                for (const project of listofProject.rows) {
+                                    const ec2_list = await DBCONNECT(`Select * from vm_instances where id='${project.instance_id}'`);
+                                    if (ec2_list.rows.length > 0) {
+                                        for (const item of ec2_list.rows) {
+                                            // if (item.project_id) {
+
+                                            // const search = await DBCONNECT(`Select project_name from projects where id=${item.project_id}`);
+                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
+                                            const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}') `)
+
+                                            instanceList.push({
+                                                id: item.id,
+                                                name: item.name,
+                                                state: item.status,
+                                                isstopped: item.isstopped,
+                                                publicIp: item.public_ip,
+                                                privateIp: item.privateip,
+                                                is_mapped: item.is_mapped,
+                                                project_name: search_query.rows[0].jsonb_agg,
+                                                // project_name: search.rows[0].project_name ? search.rows[0].project_name : "",
+                                                state_changed_date: item.state_changed_date ? item.state_changed_date : "",
+                                                project_ids: project_ids.rows[0].jsonb_agg
+                                            });
+                                            // }
                                         }
                                     }
                                 }

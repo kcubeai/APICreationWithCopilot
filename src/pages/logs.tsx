@@ -58,14 +58,19 @@ export default function logs() {
             key: 'user_id',
         },
         {
+            title: 'User Name ',
+            dataIndex: 'user_name',
+            key: 'user_name',
+        },
+        {
             title: "Last Login",
             dataIndex: "last_login",
             key: "last_login",
             render: (text: string, record: any) => {
                 if (record.last_login != "") {
 
-                    var date = moment(record.last_login).format('YYYY-MM-DD HH:mm:ss');
-                    return date;
+                    var date = moment(record.last_login).format('YYYY-MM-DD HH:mm');
+                    return date + ` IST`;
                 } else {
                     return ""
                 }
@@ -86,6 +91,11 @@ export default function logs() {
             key: 'user_id',
         },
         {
+            title: 'User Name ',
+            dataIndex: 'user_name',
+            key: 'user_name',
+        },
+        {
             title: 'Action ',
             dataIndex: 'action',
             key: 'action',
@@ -97,8 +107,8 @@ export default function logs() {
             render: (text: string, record: any) => {
                 if (record.log_time != "") {
 
-                    var date = moment(record.log_time).format('YYYY-MM-DD HH:mm:ss');
-                    return date;
+                    var date = moment(record.log_time).format('YYYY-MM-DD HH:mm');
+                    return date + ` IST`;
                 } else {
                     return ""
                 }
@@ -114,7 +124,7 @@ export default function logs() {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <HeaderComponent title="Activity Logs" />
+            <HeaderComponent title="Logs" />
             <Content style={{ padding: '50px' }}>
                 <div style={{ marginBottom: '20px' }}>
                     <div style={{ marginBottom: '20px', marginTop: '20px' }}>

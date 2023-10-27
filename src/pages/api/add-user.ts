@@ -37,10 +37,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         }
         try {
+            const userName = await DBCONNECT(`select username from user_detail where id=${userID}`)
             if (action == 'delete') {
-                const delete_user_query = await DBCONNECT(`update user_detail set isactive=false where id=${id}`)
+                const delete_user_query = await DBCONNECT(`update user_detail set isactive=false where id=${id} returning username`)
                 const user_list = await DBCONNECT('select * from user_detail where isactive=true');
-                const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time) values(${userID},'deleted the user with id ${id}',NOW())`);
+                const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'deleted the user "${delete_user_query.rows[0].username}" with id ${id}',NOW(),'${userName.rows[0].username}')`);
                 res.status(200).json({ status: 200, message: 'User deleted successfully', userList: user_list.rows });
             } 
             
@@ -81,14 +82,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 let isuser = role == "isuser" ? true : false;
 
                 const userAddQuery = `INSERT into user_detail (username,password,created_date,isadmin,issuperadmin,isuser,isactive) values ('${username}','${password}',NOW(),${isadmin},${issuperadmin},${isuser},true) Returning id;`;
+                console.log(userAddQuery)
                 const insert_result = await DBCONNECT(userAddQuery);
-                const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time) values(${userID},'added the user with id ${insert_result.rows[0].id}',NOW())`);
+                const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'added the user "${username}" with id ${insert_result.rows[0].id}',NOW(),'${userName.rows[0].username}')`);
                 if (insert_result.rows[0].id != "") {
                     const { projectList } = req.body;
                     if (!issuperadmin) {
                         if (projectList && projectList.length > 0) {
                             for (const project of projectList) {
-                                const user_project_query = `INSERT into users_projects (user_id,project_id) values (${insert_result.rows[0].id},${project})`;
+                                const user_project_query = `INSERT into users_assigned_with_projects (user_id,project_id) values (${insert_result.rows[0].id},${project})`;
                                 const addProject = await DBCONNECT(user_project_query);
                             }
 
@@ -98,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         const { ec2List } = req.body;
                         if (ec2List && ec2List.length > 0) {
                             for (const project of ec2List) {
-                                const user_ec2_query = `INSERT into users_ec2 (user_id,instance_id) values (${insert_result.rows[0].id},'${project}')`;
+                                const user_ec2_query = `INSERT into users_assigned_with_ec2 (user_id,instance_id) values (${insert_result.rows[0].id},'${project}')`;
                                 const addProject = await DBCONNECT(user_ec2_query);
                             }
 
@@ -106,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         const { rdsList } = req.body;
                         if (rdsList && rdsList.length > 0) {
                             for (const project of rdsList) {
-                                const user_ec2_query = `INSERT into users_rds (user_id,identifier_id) values (${insert_result.rows[0].id},'${project}')`;
+                                const user_ec2_query = `INSERT into users_assigned_with_rds (user_id,identifier_id) values (${insert_result.rows[0].id},'${project}')`;
                                 const addProject = await DBCONNECT(user_ec2_query);
                             }
 
@@ -114,7 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         const { vmList } = req.body;
                         if (vmList && vmList.length > 0) {
                             for (const project of vmList) {
-                                const user_vm_query = `INSERT into users_vm (user_id,instance_id) values (${insert_result.rows[0].id},'${project}')`;
+                                const user_vm_query = `INSERT into users_assigned_with_vm (user_id,instance_id) values (${insert_result.rows[0].id},'${project}')`;
                                 const addProject = await DBCONNECT(user_vm_query);
                             }
 

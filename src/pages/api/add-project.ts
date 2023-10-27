@@ -8,6 +8,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const action: any = req.headers['action'];
     const { id, name, ec2Instances, rdsIdentifiers, vmInstances } = req.body;
     const userID: any = req.headers['userid']
+    const username = await DBCONNECT(`select username from user_detail where id=${userID}`)
+
     if (authorization) {
         if (authorization !== process.env.APP_KEY) {
             if (authorization.split(" ")[1]) {
@@ -30,12 +32,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
             if (action == "delete") {
                 try {
+                    const delete_project_from_service_assigned_with_projects = await DBCONNECT(`delete from service_assigned_with_projects where project_id=${id}`)
+
+
                     const update_query_ec2 = await DBCONNECT(`update ec2_instances set project_id=null,is_mapped=false where project_id=${id}`);
                     const update_query_rds = await DBCONNECT(`update rds_identifiers set project_id=null,is_mapped=false where project_id=${id}`);
                     const update_query_vm = await DBCONNECT(`update vm_instances set project_id=null,is_mapped=false where project_id=${id}`);
-                    const users_projects = await DBCONNECT(`delete from users_projects where project_id=${id}`);
-                    const delete_query = await DBCONNECT(`delete from projects where id=${id}`);
-                    const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time) values(${userID},'deleted the project with id ${id}',NOW())`);
+                    const users_projects = await DBCONNECT(`delete from users_assigned_with_projects where project_id=${id}`);
+                    const delete_query = await DBCONNECT(`delete from projects where id=${id} returning project_name`);
+                    const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'deleted the project "${delete_query.rows[0].project_name}" with id ${id}',NOW(),'${username.rows[0].username}')`);
                     res.status(200).json({ message: 'Project Deleted Successfully' })
                 } catch (error) {
                     logger.error(
@@ -50,26 +55,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const insertQuery = `INSERT INTO projects (project_name) VALUES ('${name}') RETURNING id;`
 
                     const result = await DBCONNECT(insertQuery);
-                    const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time) values(${userID},'added the project with id ${result.rows[0].id}',NOW())`);
+                    const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'added the project "${name}" with id ${result.rows[0].id}',NOW(),'${username.rows[0].username}')`);
                     if (result.rows.length > 0) {
                         if (ec2Instances && ec2Instances.length > 0) {
                             const aws_ec2_string = ec2Instances.map((value: any) => `'${value}'`).join(', ');
-
+                            console.log(ec2Instances)
                             const aws_ec2_update_query = `update ec2_instances set is_mapped=true,project_id=${result.rows[0].id} where id in (${aws_ec2_string}) `
-
                             const ec2_update = await DBCONNECT(aws_ec2_update_query)
+                            const service_assigned_query = await DBCONNECT(`insert into service_assigned_with_projects(service_id,service_type,project_id) SELECT unnest(ARRAY[${aws_ec2_string}]), 'ec2',${result.rows[0].id};`)
+                            console.log(service_assigned_query.rows);
                         }
                         if (rdsIdentifiers && rdsIdentifiers.length > 0) {
                             const aws_rds_string = rdsIdentifiers.map((value: any) => `'${value}'`).join(', ');
 
                             const aws_rds_update_query = `update rds_identifiers set is_mapped=true,project_id=${result.rows[0].id} where id in (${aws_rds_string}) `
                             const rds_update = await DBCONNECT(aws_rds_update_query);
+                            const service_assigned_query = await DBCONNECT(`insert into service_assigned_with_projects(service_id,service_type,project_id) SELECT unnest(ARRAY[${aws_rds_string}]), 'rds',${result.rows[0].id};`)
+                            console.log(service_assigned_query.rows);
                         }
                         if (vmInstances && vmInstances.length > 0) {
                             const gcp_vm_string = vmInstances.map((value: any) => `'${value}'`).join(', ');
 
                             const gcp_vm_update_query = `update vm_instances set is_mapped=true,project_id=${result.rows[0].id} where id in (${gcp_vm_string}) `
                             const gcp_vm_update = await DBCONNECT(gcp_vm_update_query);
+                            const service_assigned_query = await DBCONNECT(`insert into service_assigned_with_projects(service_id,service_type,project_id) SELECT unnest(ARRAY[${gcp_vm_string}]), 'vm',${result.rows[0].id};`)
+                            console.log(service_assigned_query);
                         }
                     }
                     res.status(200).json({ message: 'Project Added Successfully' })
@@ -89,7 +99,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }
             } else if (action == "edit") {
                 try {
-                    const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time) values(${userID},'edited the project with id ${id}',NOW())`);
+                    const project_name = await DBCONNECT(`select project_name from projects where id=${id}`);
+                    const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'edited the project "${project_name.rows[0].project_name}" with id ${id}',NOW(),'${username.rows[0].username}')`);
 
                     const aws_ec2_init_update = `update ec2_instances set is_mapped=false, project_id=null where project_id=${id}`;
                     const aws_rds_init_update = `update rds_identifiers set is_mapped=false, project_id=null where project_id=${id}`;
