@@ -155,6 +155,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                     isSuperAdmin,
                 }
             }).then((response: any) => {
+                debugger;
                 if (id == "") {
                     setProjects(response.data.projectList)
                 } else {
@@ -241,7 +242,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                             
 
                             
-                            {projects.map((record: any) => (
+                            {/* {projects.map((record: any) => (
                                 <>
                                 <Form.Item
                                 label="Project Name"
@@ -258,10 +259,10 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                                             <input type="text" value={record.project_nam} readOnly />
                                         </div>
 
-                                {/* <Input disabled={action === "edit"} /> */}
+                                <Input disabled={action === "edit"} />
                                 </Form.Item>
                                 </>
-                                  ))}
+                                  ))} */}
                               
 
                                 
@@ -452,6 +453,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
 
     })
     const data: any = { projectList }
+    console.log(projectList)
     // Pass data to the page via props
     return { props: { data } }
 }

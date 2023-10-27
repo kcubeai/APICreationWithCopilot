@@ -78,8 +78,42 @@ export default async function handler(req: any, res: any) {
             const aws_ec2_list = await DBCONNECT(ec2_list)
             const aws_rds_list = await DBCONNECT(rds_list)
             const gcp_vm_list = await DBCONNECT(vm_list)
-            res.status(200).json({ aws_ec2_list: aws_ec2_list.rows, aws_rds_list: aws_rds_list.rows, project_details: project_detail.rows[0], gcp_vm_list: gcp_vm_list.rows })
-            
+            let ec2_list_with_project_name = [];
+            let rds_list_with_project_name = [];
+            let vm_list_with_project_name = [];
+            if (aws_ec2_list.rows.length > 0) {
+                for (const item of aws_ec2_list.rows) {
+                    const project_name =
+                        await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}')`)
+                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
+                    item.project_name = project_name.rows[0].jsonb_agg;
+                    item.project_ids = project_ids.rows[0].jsonb_agg;
+                    ec2_list_with_project_name.push(item)
+                }
+            }
+            if (aws_rds_list.rows.length > 0) {
+                for (const item of aws_rds_list.rows) {
+                    const project_name =
+                        await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}')`)
+                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
+                    item.project_name = project_name.rows[0].jsonb_agg;
+                    item.project_ids = project_ids.rows[0].jsonb_agg;
+                    rds_list_with_project_name.push(item)
+                }
+            }
+            if (gcp_vm_list.rows.length > 0) {
+                for (const item of gcp_vm_list.rows) {
+                    const project_name =
+                        await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}')`)
+                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
+                    item.project_name = project_name.rows[0].jsonb_agg;
+                    item.project_ids = project_ids.rows[0].jsonb_agg;
+                    vm_list_with_project_name.push(item)
+                }
+            }
+            // res.status(200).json({ aws_ec2_list: aws_ec2_list.rows, aws_rds_list: aws_rds_list.rows, project_details: project_detail.rows[0], gcp_vm_list: gcp_vm_list.rows })
+            res.status(200).json({ aws_ec2_list: ec2_list_with_project_name, aws_rds_list: rds_list_with_project_name, project_details: project_detail.rows[0], gcp_vm_list: vm_list_with_project_name })
+
         }
     } else {
         logger.error(
