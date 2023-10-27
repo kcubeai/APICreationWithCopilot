@@ -79,6 +79,7 @@ export default async function handler(req: any, res: any) {
             const aws_rds_list = await DBCONNECT(rds_list)
             const gcp_vm_list = await DBCONNECT(vm_list)
             res.status(200).json({ aws_ec2_list: aws_ec2_list.rows, aws_rds_list: aws_rds_list.rows, project_details: project_detail.rows[0], gcp_vm_list: gcp_vm_list.rows })
+            
         }
     } else {
         logger.error(
