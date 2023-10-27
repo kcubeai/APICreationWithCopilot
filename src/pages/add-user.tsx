@@ -32,9 +32,9 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const getdistinctValues = (data: any) => {
         const distinctObjects = data.reduce((acc: any, obj: any) => {
             // If the status is not 'termin', keep the object
-            if (!obj.status.includes("termin") && !obj.status.includes("dele")) {
-                acc[obj.id] = obj;
-            }
+            // if (!obj.status.includes("termin") && !obj.status.includes("dele")) {
+            acc[obj.id] = obj;
+            // }
             return acc;
         }, {});
 
@@ -47,7 +47,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
 
     const [ec2CheckList, setEc2CheckList] = useState(data.ec2List ? getdistinctValues(data.ec2List) : []);
     const [rdsCheckList, setRDSCheckList] = useState(data.rdsList ? getdistinctValues(data.rdsList) : []);
-    const [vmCheckList, setVMCheckList] = useState(data.vmList ? data.vmList : [])
+    const [vmCheckList, setVMCheckList] = useState(data.vmList ? getdistinctValues(data.vmList) : [])
     const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setUsername(event.target.value);
     };
@@ -282,7 +282,8 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                         // setRDSCheckList(rdsList.filter((item: any) => !item.status.includes("delet")));
                         setEc2CheckList(getdistinctValues(ec2List));
                         setRDSCheckList(getdistinctValues(rdsList));
-                        setVMCheckList(vmList);
+                        // setVMCheckList(vmList);
+                        setVMCheckList(getdistinctValues(vmList))
                     })
                 }
                 // setEc2CheckList(ec2List.filter((item: any) => !item.status.includes("termin")));
