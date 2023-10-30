@@ -67,7 +67,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                         isstopped: instance.isstopped,
                                         publicIp: instance.public_ip,
                                         privateIp: instance.privateip,
-                                        is_mapped: instance.is_mapped,
+                                        // is_mapped: instance.is_mapped,
                                         project_name: instance.project_name ? instance.project_name : "",
                                         state_changed_date: instance.state_changed_date ? instance.state_changed_date : "",
                                         project_ids: project_ids.rows[0].jsonb_agg
@@ -100,7 +100,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                                     isstopped: item.isstopped,
                                                     publicIp: item.public_ip,
                                                     privateIp: item.privateip,
-                                                    is_mapped: item.is_mapped,
+                                                    // is_mapped: item.is_mapped,
                                                     project_name: project_name.rows[0].jsonb_agg ? project_name.rows[0].jsonb_agg : "",
                                                     state_changed_date: item.state_changed_date ? item.state_changed_date : "",
                                                     project_ids: project_ids.rows[0].jsonb_agg
@@ -134,7 +134,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                                 isstopped: item.isstopped,
                                                 publicIp: item.public_ip,
                                                 privateIp: item.privateip,
-                                                is_mapped: item.is_mapped,
+                                                // is_mapped: item.is_mapped,
                                                 project_name: search_query.rows[0].jsonb_agg,
                                                 state_changed_date: item.state_changed_date ? item.state_changed_date : "",
                                                 project_ids: project_ids.rows[0].jsonb_agg
@@ -177,7 +177,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                         isstopped: instance.isstopped,
                                         publicIp: instance.public_ip,
                                         privateIp: instance.privateip,
-                                        is_mapped: instance.is_mapped,
+                                        // is_mapped: instance.is_mapped,
                                         project_name: instance.project_name ? instance.project_name : "",
 
                                         state_changed_date: instance.state_changed_date ? instance.state_changed_date : "",
@@ -211,7 +211,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                                     isstopped: item.isstopped,
                                                     publicIp: item.public_ip,
                                                     privateIp: item.privateip,
-                                                    is_mapped: item.is_mapped,
+                                                    // is_mapped: item.is_mapped,
                                                     project_name: project_name.rows[0].jsonb_agg ? project_name.rows[0].jsonb_agg : "",
                                                     state_changed_date: item.state_changed_date ? item.state_changed_date : "",
                                                     project_ids: project_ids.rows[0].jsonb_agg
@@ -244,7 +244,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                                 isstopped: item.isstopped,
                                                 publicIp: item.public_ip,
                                                 privateIp: item.privateip,
-                                                is_mapped: item.is_mapped,
+                                                // is_mapped: item.is_mapped,
                                                 project_name: search_query.rows[0].jsonb_agg,
                                                 state_changed_date: item.state_changed_date ? item.state_changed_date : "",
                                                 project_ids: project_ids.rows[0].jsonb_agg
@@ -287,7 +287,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                         state: instance.status,
                                         isstopped: instance.isstopped,
                                         privateIp: instance.privateip,
-                                        is_mapped: instance.is_mapped,
+                                        // is_mapped: instance.is_mapped,
                                         project_name: instance.project_name ? instance.project_name : "",
 
                                         state_changed_date: instance.state_changed_date ? instance.state_changed_date : "",
@@ -320,7 +320,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                                     isstopped: item.isstopped,
                                                     publicIp: item.public_ip,
                                                     privateIp: item.privateip,
-                                                    is_mapped: item.is_mapped,
+                                                    // is_mapped: item.is_mapped,
                                                     project_name: project_name.rows[0].jsonb_agg ? project_name.rows[0].jsonb_agg : "",
                                                     state_changed_date: item.state_changed_date ? item.state_changed_date : "",
                                                     project_ids: project_ids.rows[0].jsonb_agg
@@ -355,7 +355,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                                 isstopped: item.isstopped,
                                                 publicIp: item.public_ip,
                                                 privateIp: item.privateip,
-                                                is_mapped: item.is_mapped,
+                                                // is_mapped: item.is_mapped,
                                                 project_name: search_query.rows[0].jsonb_agg,
                                                 // project_name: search.rows[0].project_name ? search.rows[0].project_name : "",
                                                 state_changed_date: item.state_changed_date ? item.state_changed_date : "",

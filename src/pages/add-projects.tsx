@@ -71,7 +71,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         }).catch((error: any) => {
             notification.error({
                 message: 'Info',
-                description: error.response.data.message,
+                description: error.response.data.error,
                 placement: 'topRight',
                 duration: 3
             });
@@ -181,7 +181,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
             }).catch((error: any) => {
                 notification.error({
                     message: 'Info',
-                    description: error.response.data.message,
+                    description: error.response.data.error,
                     placement: 'topRight',
                     duration: 3
                 });
@@ -189,7 +189,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         } catch (error: any) {
             notification.error({
                 message: 'Info',
-                description: error.response.data.message,
+                description: error.response.data.error,
                 placement: 'topRight',
                 duration: 3
             });
