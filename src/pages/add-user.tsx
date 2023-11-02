@@ -104,7 +104,6 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const deleteUser = (record: any) => {
         axios.post('/api/add-user', { id: record.id }, { headers: { "authorization": token, action: 'delete', userID } }).then((response: any) => {
             if (response.data.status == 200) {
-                debugger;
                 setUserList(response.data.userList)
                 getUserList()
                 notification.success({
@@ -263,7 +262,6 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
         if (isAdmin) {
             // console.log("called")
             axios.get('/api/get-project-list', { headers: { authorization: token, id: '', isAdmin, userID } }).then((response: any) => {
-                debugger;
                 if (response.data.projectList && response.data.projectList.length > 0) {
                     setProjectCheckList(response.data.projectList);
 
@@ -273,7 +271,6 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                 var vmList: any = []
                 for (const projects of response.data.projectList) {
                     axios.get('/api/get-project-list', { headers: { authorization: token, id: projects.id } }).then((response: any) => {
-                        debugger;
                         ec2List.push(...response.data.aws_ec2_list)
                         rdsList.push(...response.data.aws_rds_list)
                         vmList.push(...response.data.gcp_vm_list)

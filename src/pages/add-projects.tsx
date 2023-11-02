@@ -40,7 +40,10 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
             dataIndex: 'edit',
             key: 'edit',
             render: (text: string, record: any) => {
-                return <Button type="primary" onClick={() => editProject(record)}>Edit</Button>;
+                return <Button type="primary" onClick={() => {
+                    // editProject(record);
+                    router.push(`/edit-project/${record.id}`)
+                }}>Edit</Button>;
             }
         },
         {
@@ -54,10 +57,12 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
     ];
     const editProject = (record: any) => {
         setAction("edit")
-        fetchProjectsFromDB(record.id);
+        setFormValues({ ...formValues, "name": record.project_name, "id": record.id })
+        console.log(formValues)
         setName(record.project_name)
         setID(record.id)
         setAddUser(true);
+        fetchProjectsFromDB(record);
     }
     const deleteProject = (record: any) => {
         axios.post('/api/add-project', { id: record.id }, { headers: { 'Authorization': token, action: "delete", userID } }).then((response: any) => {
@@ -102,9 +107,10 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         // Add new project to the list
         setAction("add")
         setAddUser(true);
-        getProjectList([], [])
+        getProjectList([], [], "", "")
     };
-    const getProjectList = async (aws_ec2: any, aws_rds: any) => {
+    const getProjectList = async (aws_ec2: any, aws_rds: any, id: any, proj_name: any) => {
+
         await axios.get('/api/sync', {
             headers: {
                 'Content-Type': 'application/json',
@@ -113,44 +119,40 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         }).then((response: any) => {
             const { ec2_instance_list, rds_identifiers, project_details, vmList } = response.data;
             // console.log(response.data);
-            const updatedec2List: any = ec2_instance_list
-                .filter((topItem: any) =>
-                    aws_ec2.some((existItem: any) => existItem.id === topItem.id)
-                )
-                .map((item: any) => item.id);
-            const updatedrdsList: any = rds_identifiers
-                .filter((topItem: any) =>
-                    aws_rds.some((existItem: any) => existItem.id === topItem.id)
-                )
-                .map((item: any) => item.id);
+            const updatedec2List: any = ec2_instance_list.filter((topItem: any) => aws_ec2.some((existItem: any) => existItem.id == topItem.id)).map((item: any) => item.id);
+            ec2_instance_list.forEach((topItem: any) => aws_ec2.some((existItem: any) => { if (existItem.id === topItem.id) { topItem.checked = true; } else { topItem.checked = false; } }))
+            const updatedrdsList: any = rds_identifiers.filter((topItem: any) => aws_rds.some((existItem: any) => existItem.id === topItem.id)).map((item: any) => item.id);
+            rds_identifiers.forEach((topItem: any) => aws_rds.some((existItem: any) => { if (existItem.id === topItem.id) { topItem.checked = true; } else { topItem.checked = false; } }))
+            const updatedvmList: any = vmList.filter((topItem: any) => aws_rds.some((existItem: any) => existItem.id === topItem.id)).map((item: any) => item.id);
+            vmList.forEach((topItem: any) => aws_rds.some((existItem: any) => { if (existItem.id === topItem.id) { topItem.checked = true; } else { topItem.checked = false; } }))
             setEC2(updatedec2List);
             setRDS(updatedrdsList)
-            // setVM(vmList);
-            // setFormValues(...formValues,{ id: selectedId, name: name, ec2Instances: selectedEc2, rdsIdentifiers: selectedRDS } )
+            setFormValues({ "id": id, "name": proj_name, "ec2Instances": updatedec2List, "rdsIdentifiers": updatedrdsList, "vmInstances": updatedvmList })
+
             var filtered_ec2_list = ec2_instance_list.filter((item: any) => !item.status.includes("termin"));
             var filtered_rds_list = rds_identifiers.filter((item: any) => !item.status.includes("delet"));
-            setEC2List(filtered_ec2_list);
+            var defaultOptions: any = []
+            ec2_instance_list.forEach((topItem: any) => { defaultOptions.push({ label: topItem.name, value: topItem.id }) })
+
+            setEC2List(defaultOptions);
             setRDSList(filtered_rds_list);
             setVMList(vmList)
-            form.setFieldsValue({ id: selectedId, name: name, ec2Instances: selectedEc2, rdsIdentifiers: selectedRDS })
-
         })
     }
-    const fetchProjectsFromDB = async (id: any) => {
+    const fetchProjectsFromDB = async (record: any) => {
         try {
             axios.get('/api/get-project-list', {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `${token}`,
-                    id,
+                    id: record.id,
                     isSuperAdmin,
                 }
             }).then((response: any) => {
-                debugger;
-                if (id == "") {
+                if (record.id == "") {
                     setProjects(response.data.projectList)
                 } else {
-                    getProjectList(response.data.aws_ec2_list, response.data.aws_rds_list)
+                    getProjectList(response.data.aws_ec2_list, response.data.aws_rds_list, record.id, record.project_name)
                 }
 
             })
@@ -162,20 +164,27 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         try {
 
             axios.post('/api/add-project', formValues, { headers: { 'Authorization': token, action, userID } }).then((response: any) => {
-                getProjectList([], [])
+                getProjectList([], [], "", "")
                 notification.success({
                     message: 'Success',
                     description: response.data.message,
                     placement: 'topRight',
                     duration: 3
                 });
+                setFormValues({
+                    id: "",
+                    name: '',
+                    ec2Instances: [],
+                    rdsIdentifiers: [],
+                    vmInstances: []
+                })
                 form.resetFields();
                 setAction("add")
                 setAddUser(false);
                 setEC2List([]);
                 setRDSList([]);
                 setVMList([]);
-                fetchProjectsFromDB("");
+                fetchProjectsFromDB({ id: "", project_name: "" });
                 setName("");
                 setID("");
             }).catch((error: any) => {
@@ -214,7 +223,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                                     setEC2List([]);
                                     setRDSList([]);
                                     setVMList([]);
-                                    fetchProjectsFromDB("");
+                                    fetchProjectsFromDB({ id: "", project_name: "" });
                                     setName("");
                                     setID("");
                                 }}>Back to List</Button>
@@ -222,9 +231,10 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
 
                         </div>
 
-                        <Form form={form} initialValues={{ remember: true }}
+                        <Form form={form}
                             onFinish={handleFormSubmit}
                             onValuesChange={handleFormValuesChange}
+                            initialValues={formValues}
                         >
                             <Form.Item
                                 label="Project Name"
@@ -236,28 +246,34 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                                     },
                                 ]}
                             >
-                                <Input disabled={action === "edit"} />
+                                <Input defaultValue={name} disabled={action === "edit"} />
                             </Form.Item>
                             <Form.Item
                                 label="EC2 Instances"
-                                valuePropName="value"
+                                // valuePropName="value"
                                 name="ec2Instances"
                             >
-                                <Checkbox.Group name="ec2Instances" defaultValue={selectedEc2}>
+                                <Checkbox.Group
+                                    options={ec2List}
+                                    defaultValue={selectedEc2}
+                                // onChange={onChange}
+                                />
+                                {/* <Checkbox.Group name="ec2Instances" defaultValue={selectedEc2}>
                                     {ec2List.map((ec2: any) => (
                                         <Checkbox key={ec2.id} value={ec2.id} checked={action == "edit" ? ec2.checked : false}>
                                             {ec2.name}
                                         </Checkbox>
                                     ))}
-                                </Checkbox.Group>
+                                </Checkbox.Group> */}
                                 {/* disabled={(action == "add" && ec2.is_mapped)} */}
                             </Form.Item>
                             <Form.Item
                                 label="RDS Identifiers"
                                 name="rdsIdentifiers"
-                                valuePropName="value"
+                            // valuePropName="value"
                             >
-                                <Checkbox.Group name="rdsIdentifiers" defaultValue={selectedRDS}>
+                                {/* value={selectedRDS} */}
+                                <Checkbox.Group value={selectedRDS} >
                                     {rdsList.map((rds: any) => (
                                         <Checkbox key={rds.id} value={rds.id} checked={action == "edit" ? rds.checked : false}>
                                             {rds.name}
@@ -271,7 +287,8 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                                 name="vmInstances"
                                 valuePropName="value"
                             >
-                                <Checkbox.Group name="vmInstances" defaultValue={selectedVM}>
+                                {/* value={selectedVM} */}
+                                <Checkbox.Group name="vmInstances" value={selectedVM}>
                                     {vmList.map((rds: any) => (
                                         <Checkbox key={rds.id} value={rds.id}>
                                             {rds.name}

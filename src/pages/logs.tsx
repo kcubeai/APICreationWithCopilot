@@ -52,11 +52,11 @@ export default function logs() {
             key: 'serialNo',
             render: (text: string, record: any, index: number) => index + 1
         },
-        {
-            title: 'User ID ',
-            dataIndex: 'user_id',
-            key: 'user_id',
-        },
+        // {
+        //     title: 'User ID ',
+        //     dataIndex: 'user_id',
+        //     key: 'user_id',
+        // },
         {
             title: 'User Name ',
             dataIndex: 'user_name',
@@ -85,11 +85,11 @@ export default function logs() {
             key: 'serialNo',
             render: (text: string, record: any, index: number) => index + 1
         },
-        {
-            title: 'User ID ',
-            dataIndex: 'user_id',
-            key: 'user_id',
-        },
+        // {
+        //     title: 'User ID ',
+        //     dataIndex: 'user_id',
+        //     key: 'user_id',
+        // },
         {
             title: 'User Name ',
             dataIndex: 'user_name',

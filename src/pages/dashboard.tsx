@@ -214,8 +214,13 @@ export default function Login() {
                     if (selectedType == "EC2") {
                         if (response.data.instanceList.length > 0) {
                             response.data.instanceList.forEach((item: any) => {
-                                var project_string = item.project_name.map((value: any) => `${value}`).join(', ');
-                                item.project_name = project_string;
+                                if (item.project_name != "") {
+
+                                    var project_string = item.project_name.map((value: any) => `${value}`).join(', ');
+                                    item.project_name = project_string;
+                                } else {
+                                    item.project_name = ""
+                                }
                             })
                             setDataEC2(response.data.instanceList)
                         } else {
@@ -226,8 +231,13 @@ export default function Login() {
                     if (selectedType == "RDS") {
                         if (response.data.instanceList.length > 0) {
                             response.data.instanceList.forEach((item: any) => {
-                                var project_string = item.project_name.map((value: any) => `${value}`).join(', ');
-                                item.project_name = project_string;
+                                if (item.project_name != "") {
+
+                                    var project_string = item.project_name.map((value: any) => `${value}`).join(', ');
+                                    item.project_name = project_string;
+                                } else {
+                                    item.project_name = ""
+                                }
                             })
                             setDataRDS(response.data.instanceList)
                         } else {
@@ -238,8 +248,13 @@ export default function Login() {
                     if (selectedType == "VM") {
                         if (response.data.instanceList.length > 0) {
                             response.data.instanceList.forEach((item: any) => {
-                                var project_string = item.project_name.map((value: any) => `${value}`).join(', ');
-                                item.project_name = project_string;
+                                if (item.project_name != "") {
+
+                                    var project_string = item.project_name.map((value: any) => `${value}`).join(', ');
+                                    item.project_name = project_string;
+                                } else {
+                                    item.project_name = ""
+                                }
                             })
                             setDataVM(response.data.instanceList)
                         } else {
