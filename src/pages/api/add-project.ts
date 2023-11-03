@@ -35,9 +35,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const delete_project_from_service_assigned_with_projects = await DBCONNECT(`delete from service_assigned_with_projects where project_id=${id}`)
 
 
-                    // const update_query_ec2 = await DBCONNECT(`update ec2_instances set project_id=null,is_mapped=false where project_id=${id}`);
-                    // const update_query_rds = await DBCONNECT(`update rds_identifiers set project_id=null,is_mapped=false where project_id=${id}`);
-                    // const update_query_vm = await DBCONNECT(`update vm_instances set project_id=null,is_mapped=false where project_id=${id}`);
                     const users_projects = await DBCONNECT(`delete from users_assigned_with_projects where project_id=${id}`);
                     const delete_query = await DBCONNECT(`delete from projects where id=${id} returning project_name`);
                     const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'deleted the project "${delete_query.rows[0].project_name}" with id ${id}',NOW(),'${username.rows[0].username}')`);
@@ -85,7 +82,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     res.status(200).json({ message: 'Project Added Successfully' })
                 } catch (error) {
                     const jsonStringified = JSON.stringify(error);
-                    // if (jsonStringified.includes('duplicate key value violates unique constraint')) {
                     if (jsonStringified.includes('already exist')) {
                         logger.error(
                             `[${req.method} ${req.url}] - Project Name Already exists`
@@ -100,30 +96,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }
             } else if (action == "edit") {
                 try {
-                    // const project_name = await DBCONNECT(`select project_name from projects where id=${id}`);
-                    // const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'edited the project "${project_name.rows[0].project_name}" with id ${id}',NOW(),'${username.rows[0].username}')`);
+                    const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'edited the project "${name}" with id ${id}',NOW(),'${username.rows[0].username}')`);
 
-                    // const aws_ec2_init_update = `update ec2_instances set is_mapped=false, project_id=null where project_id=${id}`;
-                    // const aws_rds_init_update = `update rds_identifiers set is_mapped=false, project_id=null where project_id=${id}`;
-
-                    // const ec2_init_update = await DBCONNECT(aws_ec2_init_update)
-
-                    // const rds_init_update = await DBCONNECT(aws_rds_init_update)
-                    // if (ec2Instances && ec2Instances.length > 0) {
-                    //     const aws_ec2_string = ec2Instances.map((value: any) => `'${value}'`).join(', ');
-
-                    //     const aws_ec2_update_query = `update ec2_instances set is_mapped=true,project_id=${id} where id in (${aws_ec2_string}) `
-
-                    //     const ec2_update = await DBCONNECT(aws_ec2_update_query);
-                    // }
-                    // if (rdsIdentifiers && rdsIdentifiers.length > 0) {
-                    //     const aws_rds_string = rdsIdentifiers.map((value: any) => `'${value}'`).join(', ');
-
-                    //     const aws_rds_update_query = `update rds_identifiers set is_mapped=true,project_id=${id} where id in (${aws_rds_string}) `
-                    //     const rds_update = await DBCONNECT(aws_rds_update_query);
-                    // }
-
-                    // const updateProject_name = await DBCONNECT(`update projects set project_name='${name}' where id=${id}`);
+                    const updateProject_name = await DBCONNECT(`update projects set project_name='${name}' where id=${id}`);
                     if (ec2Instances && ec2Instances.length > 0) {
                         const aws_ec2_string = ec2Instances.map((value: any) => `'${value}'`).join(', ');
                         console.log(`select update_ec2_services_for_projects(Array[${aws_ec2_string}],${id});`);

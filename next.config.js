@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  assetPrefix: 'http://localhost:3000',
   reactStrictMode: true,
   images: {
     loader: 'imgix',

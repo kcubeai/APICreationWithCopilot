@@ -4,10 +4,10 @@ import { Button, Checkbox, Form, Input, Layout, notification } from "antd";
 import axios from "axios";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 const { Content } = Layout;
-export default function EditProjectsByListingEC2ListandRDSList({ data }: any) {
+export default function EditProjectsByListingEC2ListandRDSList({ data, onClose }: any) {
     const [projectName, setProjectName] = useState<any>(data.project_detail.project_details.project_name)
     const [ec2List, setEC2List] = useState<any>(data.entire_list.ec2_instance_list);
     var defaultOptions: any = [];
@@ -52,7 +52,8 @@ export default function EditProjectsByListingEC2ListandRDSList({ data }: any) {
                         placement: 'topRight',
                         duration: 3
                     });
-                    router.push('/add-projects');
+                    // router.push('/add-projects');
+                    onClose();
                 }
             })
         } catch (error) {
@@ -66,22 +67,22 @@ export default function EditProjectsByListingEC2ListandRDSList({ data }: any) {
         }
 
     };
+    useEffect(() => {
+        if (token == "") {
+            router.push('/')
+        }
+    })
     return (
         <Layout>
-            <HeaderComponent title="" />
             <Content style={{ padding: "50px", display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
-                {/* <Checkbox.Group
-                    options={ec2List}
-                    defaultValue={selectedec2}
-                // onChange={onChange}
-                /> */}
                 <div style={{ width: "50%" }}>
                     {/* Add project form goes here */}
                     <div style={{ marginBottom: "20px" }}>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <h1>Add Projects</h1>
-                            <Button type="primary" onClick={() => { router.push('/add-projects'); }}>Back to List</Button>
+                            <Button type="primary" onClick={onClose}>Back to List</Button>
+                            {/* <Button type="primary" onClick={() => { router.push('/add-projects'); }}>Back to List</Button> */}
                         </div>
 
                     </div>
@@ -146,24 +147,24 @@ export default function EditProjectsByListingEC2ListandRDSList({ data }: any) {
         </Layout>
     )
 }
-// This gets called on every request
-export const getServerSideProps: GetServerSideProps = async (context) => {
-    const { edit_project } = context.query;
-    const res = await axios.get(process.env.NEXT_PUBLIC_MOCK_PATH + '/api/get-project-list', {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': process.env.NEXT_PUBLIC_APP_KEY,
-            id: edit_project,
-            isSuperAdmin: true,
-        }
-    })
-    const list = await axios.get(process.env.NEXT_PUBLIC_MOCK_PATH + '/api/sync', {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': process.env.NEXT_PUBLIC_APP_KEY,
-        }
-    })
-    const data: any = { project_detail: res.data, entire_list: list.data }
-    // Pass data to the page via props
-    return { props: { data } }
-}
+
+// export const getServerSideProps: GetServerSideProps = async (context) => {
+//     const { edit_project } = context.query;
+//     const res = await axios.get(process.env.NEXT_PUBLIC_MOCK_PATH + '/api/get-project-list', {
+//         headers: {
+//             'Content-Type': 'application/json',
+//             'Authorization': process.env.NEXT_PUBLIC_APP_KEY,
+//             id: edit_project,
+//             isSuperAdmin: true,
+//         }
+//     })
+//     const list = await axios.get(process.env.NEXT_PUBLIC_MOCK_PATH + '/api/sync', {
+//         headers: {
+//             'Content-Type': 'application/json',
+//             'Authorization': process.env.NEXT_PUBLIC_APP_KEY,
+//         }
+//     })
+//     const data: any = { project_detail: res.data, entire_list: list.data }
+//     // Pass data to the page via props
+//     return { props: { data } }
+// }
