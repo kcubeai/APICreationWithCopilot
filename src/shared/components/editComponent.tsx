@@ -1,6 +1,6 @@
 import HeaderComponent from "@/shared/components/header";
 import { useAuth } from "@/shared/utils/auth-context";
-import { Button, Checkbox, Form, Input, Layout, notification } from "antd";
+import { Button, Checkbox, Form, Input, Layout, notification, Modal } from "antd";
 import axios from "axios";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
@@ -29,6 +29,10 @@ export default function EditProjectsByListingEC2ListandRDSList({ data, onClose }
         }
     });
     const { token, userID } = useAuth()
+    const [open, setOpen] = useState(false);
+    const showModal = () => {
+        setOpen(true);
+    };
     const customHandleSubmit = async (e: any) => {
         handleSubmit((formData, e) => {
             console.log(formData)
@@ -72,16 +76,34 @@ export default function EditProjectsByListingEC2ListandRDSList({ data, onClose }
             router.push('/')
         }
     })
+
+    const handleOk = () => {
+        setOpen(false);
+        onClose();
+    };
+
+    const handleCancel = () => {
+        // console.log('Clicked cancel button');
+        setOpen(false);
+    };
     return (
         <Layout>
+            <Modal
+                title="Title"
+                open={open}
+                onOk={handleOk}
+                onCancel={handleCancel}
+            >
+                <p>Are you sure you wan to go back to list?</p>
+            </Modal>
             <Content style={{ padding: "50px", display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
                 <div style={{ width: "50%" }}>
                     {/* Add project form goes here */}
                     <div style={{ marginBottom: "20px" }}>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h1>Add Projects</h1>
-                            <Button type="primary" onClick={onClose}>Back to List</Button>
+                            <h1>Edit Project</h1>
+                            <Button type="primary" onClick={showModal}>Back to List</Button>
                             {/* <Button type="primary" onClick={() => { router.push('/add-projects'); }}>Back to List</Button> */}
                         </div>
 
@@ -139,7 +161,7 @@ export default function EditProjectsByListingEC2ListandRDSList({ data, onClose }
                             </Checkbox.Group>
                         </div>
                         <Button htmlType="submit" disabled={!watch("projectName") || !(watch("ec2Instances")?.length || watch("rdsIdentifiers")?.length || watch("vmInstances")?.length)}>
-                            Edit Project
+                            Update
                         </Button>
                     </form>
                 </div>

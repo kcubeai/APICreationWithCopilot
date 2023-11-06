@@ -356,6 +356,8 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                             >
                                 <Input.Password value={password} onChange={handlePasswordChange} />
                             </Form.Item>
+                            <h6 style={{ marginBottom: '20px', padding: '5px' }}>Note: Atleast one special character and  one numerical character required</h6>
+
                             <Form.Item name="role" label="Select Role" rules={[{ required: true, message: "Please select a role" }]}>
                                 <Radio.Group>
                                     {isSuperAdmin ? <Radio value="issuperadmin" onChange={handleSuperAdminChange}>Is Super Admin</Radio> : null}

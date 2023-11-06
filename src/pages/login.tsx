@@ -65,7 +65,7 @@ export default function Login() {
                 }} style={{ marginBottom: '20px', padding: '5px' }} />
                 <label htmlFor="password" style={{ marginBottom: '10px' }}>Password</label>
                 <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={{ marginBottom: '20px', padding: '5px' }} />
-                <h6 style={{ marginBottom: '20px', padding: '5px' }}>Note:one special character and  one numerical character required</h6>
+                {/* <h6 style={{ marginBottom: '20px', padding: '5px' }}>Note:one special character and  one numerical character required</h6> */}
                 <button type="submit" style={{ padding: '5px 10px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '5px', cursor: isFormValid() ? 'pointer' : 'not-allowed', opacity: isFormValid() ? 1 : 0.5 }} disabled={!isFormValid()}>Login</button>
             </form>
         </div>
