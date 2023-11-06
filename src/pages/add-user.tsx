@@ -238,13 +238,11 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const handleSubmit = (event: any) => {
         const formValues = form.getFieldsValue()
         axios.post('/api/add-user', formValues, { headers: { "authorization": token, userID } }).then((response: any) => {
+            getUserList()
             if (response.data.status == 200) {
-
-                setUserList(response.data.userList);
-                getUserList()
                 notification.success({
                     message: 'Success',
-                    description: "User eleted successfully",
+                    description: "User added successfully",
                     placement: 'topRight',
                     duration: 3
                 });

@@ -181,6 +181,17 @@ export default function Login() {
             title: 'State',
             dataIndex: 'state',
             key: 'state',
+            render: (text: string, record: any) => {
+                if (record.state === 'TERMINATED') {
+                    return 'stopped';
+                }
+                // else if (record.state === 'RUNNING') {
+                //     return <Button type="primary" onClick={() => stopInstance(record.id)}>Stop</Button>;
+                // }
+                else {
+                    return record.state;
+                }
+            }
         },
         {
             title: 'Action',
