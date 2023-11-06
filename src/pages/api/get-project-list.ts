@@ -49,24 +49,31 @@ export default async function handler(req: any, res: any) {
 
                 }
                 catch (error) {
+                    console.log(error)
                     logger.error(`[${req.method} ${req.url} ] Error in fetching the project list`)
                     res.status(500).json({ message: 'Error in fetching the project list' });
                 }
             } else if (isAdmin) {
                 let query = await DBCONNECT(`SELECT project_id FROM users_assigned_with_projects where user_id=${userID}`);
-                var project_ids = query.rows.map((item: any) => item.project_id)
-                let list_query = `Select * from projects where id in (${project_ids})`
-                // const result = await DBCONNECT(list_query);
-                try {
+                console.log(query.rows, `SELECT project_id FROM users_assigned_with_projects where user_id=${userID}`)
+                if (query.rows.length > 0) {
+                    var project_ids = query.rows.map((item: any) => item.project_id)
+                    let list_query = `Select * from projects where id in (${project_ids})`
+                    // const result = await DBCONNECT(list_query);
+                    try {
 
-                    // const result = await DBCONNECT(query);
-                    const result = await DBCONNECT(list_query);
-                    res.status(200).json({ message: 'Projects Listed Successfully.', projectList: result.rows });
+                        // const result = await DBCONNECT(query);
+                        const result = await DBCONNECT(list_query);
+                        res.status(200).json({ message: 'Projects Listed Successfully.', projectList: result.rows });
 
-                }
-                catch (error) {
-                    logger.error(`[${req.method} ${req.url} ] Error in fetching the project list`)
-                    res.status(500).json({ message: 'Error in fetching the project list' });
+                    }
+                    catch (error) {
+                        console.log(error)
+                        logger.error(`[${req.method} ${req.url} ] Error in fetching the project list`)
+                        res.status(500).json({ message: 'Error in fetching the project list' });
+                    }
+                } else {
+                    res.status(200).json({ message: 'No projects for this admin user', projectList: [] });
                 }
             } else {
                 res.status(200).json({ message: 'Projects Listed Successfully.', projectList: [] });
@@ -113,9 +120,9 @@ export default async function handler(req: any, res: any) {
         else {
             console.log("id returned")
             const project_detail = await DBCONNECT(`Select * from projects where id=${id}`)
-            const ec2_list = `select * from ec2_instances where id in (select service_id from service_assigned_with_projects where project_id=${id} and service_type='ec2')`
-            const rds_list = `select * from rds_identifiers where id in (select service_id from service_assigned_with_projects where project_id=${id} and service_type='rds')`
-            const vm_list = `select * from vm_instances where id in (select service_id from service_assigned_with_projects where project_id=${id} and service_type='vm')`
+            const ec2_list = `select * from ec2_instances where id in (select service_id from service_assigned_with_projects where project_id=${id} and service_type='ec2' and isactive=true)`
+            const rds_list = `select * from rds_identifiers where id in (select service_id from service_assigned_with_projects where project_id=${id} and service_type='rds' and isactive=true)`
+            const vm_list = `select * from vm_instances where id in (select service_id from service_assigned_with_projects where project_id=${id} and service_type='vm' and isactive=true)`
             // const aws_ec2_list = await DBCONNECT(`Select * from ec2_instances where project_id=${id}`)
             // const aws_rds_list = await DBCONNECT(`Select * from rds_identifiers where project_id=${id}`)
             // const gcp_vm_list = await DBCONNECT(`Select * from vm_instances where project_id=${id}`)
@@ -128,8 +135,8 @@ export default async function handler(req: any, res: any) {
             if (aws_ec2_list.rows.length > 0) {
                 for (const item of aws_ec2_list.rows) {
                     const project_name =
-                        await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}')`)
-                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
+                        await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}' and isactive=true) and isactive=true`)
+                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}' and isactive=true`)
                     item.project_name = project_name.rows[0].jsonb_agg;
                     item.project_ids = project_ids.rows[0].jsonb_agg;
                     ec2_list_with_project_name.push(item)
@@ -138,8 +145,8 @@ export default async function handler(req: any, res: any) {
             if (aws_rds_list.rows.length > 0) {
                 for (const item of aws_rds_list.rows) {
                     const project_name =
-                        await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}')`)
-                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
+                        await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}' and isactive=true) and isactive=true`)
+                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}' and isactive=true`)
                     item.project_name = project_name.rows[0].jsonb_agg;
                     item.project_ids = project_ids.rows[0].jsonb_agg;
                     rds_list_with_project_name.push(item)
@@ -148,8 +155,8 @@ export default async function handler(req: any, res: any) {
             if (gcp_vm_list.rows.length > 0) {
                 for (const item of gcp_vm_list.rows) {
                     const project_name =
-                        await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}')`)
-                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
+                        await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}' and isactive=true) and isactive=true`)
+                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}' and isactive=true`)
                     item.project_name = project_name.rows[0].jsonb_agg;
                     item.project_ids = project_ids.rows[0].jsonb_agg;
                     vm_list_with_project_name.push(item)

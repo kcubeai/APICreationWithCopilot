@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { Button, Checkbox, Form, Input, Layout, Radio, Table, notification } from "antd";
+import { Button, Checkbox, Form, Input, Layout, Radio, Table, notification,Modal } from "antd";
 const { useForm } = Form;
 const { Header, Content } = Layout;
 import { useAuth } from "@/shared/utils/auth-context";
@@ -9,6 +9,8 @@ import Head from "next/head";
 import HeaderComponent from "@/shared/components/header";
 import axios from "axios";
 import { GetServerSideProps } from "next";
+import EditUserByListing from '@/shared/components/edit_user';
+import { set } from "react-hook-form";
 export default function AddUserWithNamePasswordEmail({ data }: any) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -26,6 +28,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const [userList, setUserList] = useState(data.userList ? data.userList : [])
     const [filterUserList, setFilterList] = useState<any>(userList);
     const [projectCheckList, setProjectCheckList] = useState(data.projectList ? data.projectList : []);
+    const [action, setAction] = useState<string>("add");
     // const [ec2CheckList, setEc2CheckList] = useState(data.ec2List ? data.ec2List.filter((item: any) => !item.status.includes("termin")) : []);
     // const [rdsCheckList, setRDSCheckList] = useState(data.rdsList ? data.rdsList.filter((item: any) => !item.status.includes("delet")) : []);
     // const [vmCheckList, setVMCheckList] = useState(data.vmList ? data.vmList : [])
@@ -37,6 +40,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
             // }
             return acc;
         }, {});
+      
 
         // Convert the object back to an array
         const distinctArray = Object.values(distinctObjects);
@@ -51,6 +55,10 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const [showEdit, setShowEdit] = useState<boolean>(false);
     const [editDetails, setEditDetails] = useState<any>({});
     const [showList, setShowList] = useState<boolean>(true);
+    const [open, setOpen] = useState(false);
+    const showModal = () => {
+        setOpen(true);
+    };
     const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setUsername(event.target.value);
     };
@@ -284,18 +292,17 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const handleSubmit = (event: any) => {
         const formValues = form.getFieldsValue()
         axios.post('/api/add-user', formValues, { headers: { "authorization": token, userID } }).then((response: any) => {
+            getUserList()
             if (response.data.status == 200) {
-
-                setUserList(response.data.userList);
-                getUserList()
                 notification.success({
                     message: 'Success',
-                    description: "User eleted successfully",
+                    description: "User added successfully",
                     placement: 'topRight',
                     duration: 3
                 });
                 form.resetFields();
-                setShowAdd(false)
+                setShowAdd(false);
+                setShowList(true);
             }
         }, (error: any) => {
             notification.error({
@@ -306,6 +313,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
             });
         })
     }
+    
     const getProjectList = () => {
         if (isAdmin) {
             // console.log("called")
@@ -347,9 +355,35 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
             })
         }
     }
+
+    const handleOk = () => {
+        setOpen(false);
+        setAction("add")
+        setShowList(true)
+        setShowAdd(false);
+        // setEC2List([]);
+        // setRDSList([]);
+        // setVMList([]);
+        // fetchProjectsFromDB({ id: "", project_name: "" });
+        // setName("");
+        // setID("");
+    };
+
+    const handleCancel = () => {
+        // console.log('Clicked cancel button');
+        setOpen(false);
+    };
     return (
 
         <Layout>
+            <Modal
+                title="Title"
+                open={open}
+                onOk={handleOk}
+                onCancel={handleCancel}
+            >
+                <p>Are you sure you wan to go back to list?</p>
+            </Modal>
 
             <Head>
                 <title>InterCloud Manager</title>
@@ -359,7 +393,8 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
             </Head>
             <HeaderComponent title="Users" />
             <Content style={{ padding: "50px", display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
-                {showAdd ?
+            <> 
+            {showAdd ? (
 
                     <div style={{ width: "50%" }}>
                         <div style={{ marginBottom: "20px" }}>
@@ -370,7 +405,8 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
 
                                     getUserList()
                                     form.resetFields();
-                                    setShowAdd(false)
+                                    // setShowAdd(true)
+                                    showModal();
                                 }}>Back to List</Button>
                             </div>
 
@@ -402,6 +438,8 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                             >
                                 <Input.Password value={password} onChange={handlePasswordChange} />
                             </Form.Item>
+                            <h6 style={{ marginBottom: '20px', padding: '5px' }}>Note: Atleast one special character and  one numerical character required</h6>
+
                             <Form.Item name="role" label="Select Role" rules={[{ required: true, message: "Please select a role" }]}>
                                 <Radio.Group>
                                     {isSuperAdmin ? <Radio value="issuperadmin" onChange={handleSuperAdminChange}>Is Super Admin</Radio> : null}
@@ -484,15 +522,25 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                                 </Button>
                             </Form.Item>
                         </Form>
-                    </div> : <><div style={{ width: "100%" }}>
+                    </div> 
+                     ) : null}
+                     {showList ? (
+                    <div style={{ width: "100%" }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <h2>User List</h2>
-                            <Button type="primary" onClick={() => { setShowAdd(true); getProjectList(); }} >
+                            <Button type="primary" onClick={() => { setShowAdd(true); setShowList(false); getProjectList(); }} >
                                 Add User
                             </Button>
                         </div>
                         <Table columns={columns} dataSource={filterUserList} style={{ marginTop: '20px' }} />
-                    </div></>}
+                    </div>
+                      ) : null}
+                      {
+                          showEdit ? (<>
+                              <EditUserByListing data={editDetails} onClose={() => { setShowList(true); setShowEdit(false) }} />
+                          </>) : null
+                      }
+                      </>
 
             </Content>
         </Layout >

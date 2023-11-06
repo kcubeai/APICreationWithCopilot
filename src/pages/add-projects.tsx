@@ -1,4 +1,4 @@
-import { Table, Button, Layout, Form, Input, Checkbox, notification } from 'antd';
+import { Table, Button, Layout, Form, Input, Checkbox, notification, Modal } from 'antd';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import HeaderComponent from '@/shared/components/header';
@@ -6,14 +6,16 @@ import { useAuth } from '../shared/utils/auth-context';
 import { error } from 'console';
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
-import { set } from 'firebase/database';
+import EditProjectsByListingEC2ListandRDSList from '@/shared/components/editComponent';
+import Head from 'next/head';
+// import EditProjectsByListingEC2ListandRDSList from './edit-project/[edit_project]';
 const { Content } = Layout;
 const { useForm } = Form;
 import React from 'react';
 
 export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
-    const [showAddUser, setAddUser] = useState<boolean>(false);
-    const [showProjEdit, setProjEdit] = useState<boolean>(false);
+    const [showAddProject, setAddProject] = useState<boolean>(false)
+    const [showList, setShowList] = useState<boolean>(true);
     const { token, isSuperAdmin, isAdmin, isUser, userID } = useAuth()
     const router = useRouter()
     const [form] = useForm();
@@ -28,7 +30,12 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
     const [selectedEc2, setEC2] = useState<any>([]);
     const [selectedRDS, setRDS] = useState<any>([])
     const [selectedVM, setVM] = useState<any>([]);
-    const [checkboxOptions, setCheckboxOptions] = useState([]);
+    const [showEdit, setShowEdit] = useState<boolean>(false);
+    const [editDetails, setEditDetails] = useState<any>({});
+    const [open, setOpen] = useState(false);
+    const showModal = () => {
+        setOpen(true);
+    };
     const columns = [
         {
             title: 'S.No',
@@ -45,15 +52,9 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
             dataIndex: 'edit',
             key: 'edit',
             render: (text: string, record: any) => {
-                return <Button type="primary" 
-                onClick={() => {
-                    editProject(record)
-                    setProjEdit(true);
-                    setAddUser(true);
-                    // getProjectByID(record.id)
-                    // fetchProjectsFromDB(record.id);
-                    // setAction("edit")
-                
+                return <Button type="primary" onClick={() => {
+                    editProject(record);
+                    // router.push(`/edit-project/${record.id}`)
                 }}>Edit</Button>;
             }
         },
@@ -66,22 +67,32 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
             }
         }
     ];
-    const editProject = (record: any) => {
-        
-        setAction("edit")
-        // getProjectByID(record.id);
-        fetchProjectsFromDB(record.id);
-        setName(record.project_name)
-        setID(record.id)
-        // setAddUser(true);
-        setFormValues(record);
-      
+    const editProject = async (record: any) => {
+        const res = await axios.get('/api/get-project-list', {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token,
+                id: record.id,
+                isSuperAdmin: true,
+            }
+        })
+        const list = await axios.get('/api/sync', {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token,
+            }
+        })
+        const data: any = { project_detail: res.data, entire_list: list.data }
+        setEditDetails(data);
+        setShowList(false);
+        setShowEdit(true);
     }
 
    
     const deleteProject = (record: any) => {
         axios.post('/api/add-project', { id: record.id }, { headers: { 'Authorization': token, action: "delete", userID } }).then((response: any) => {
 
+            fetchProjectsFromDB({ id: "", project_name: "" });
             notification.success({
                 message: 'Success',
                 description: response.data.message,
@@ -91,7 +102,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         }).catch((error: any) => {
             notification.error({
                 message: 'Info',
-                description: error.response.data.message,
+                description: error.response.data.error,
                 placement: 'topRight',
                 duration: 3
             });
@@ -110,7 +121,8 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         console.log("changedValues:", changedValues);
         console.log("allValues:", allValues);
         setFormValues(allValues);
-        setAddUser(true);
+        setShowList(false);
+        setAddProject(true);
     };
     console.log("formvalue id",formValues.id);
     const handleeditFormValuesChange = (changedValues: any, allValues: any) => {
@@ -139,10 +151,12 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
     const handleAddProject = () => {
         // Add new project to the list
         setAction("add")
-        setAddUser(true);
-        getProjectList([], [])
+        setShowList(false);
+        setAddProject(true);
+        getProjectList([], [], "", "")
     };
-    const getProjectList = async (aws_ec2: any, aws_rds: any) => {
+    const getProjectList = async (aws_ec2: any, aws_rds: any, id: any, proj_name: any) => {
+
         await axios.get('/api/sync', {
             headers: {
                 'Content-Type': 'application/json',
@@ -151,50 +165,40 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         }).then((response: any) => {
             const { ec2_instance_list, rds_identifiers, project_details, vmList } = response.data;
             // console.log(response.data);
-            const updatedec2List: any = ec2_instance_list
-                .filter((topItem: any) =>
-                    aws_ec2.some((existItem: any) => existItem.id === topItem.id)
-                )
-                .map((item: any) => item.id);
-            const updatedrdsList: any = rds_identifiers
-                .filter((topItem: any) =>
-                    aws_rds.some((existItem: any) => existItem.id === topItem.id)
-                )
-                .map((item: any) => item.id);
+            const updatedec2List: any = ec2_instance_list.filter((topItem: any) => aws_ec2.some((existItem: any) => existItem.id == topItem.id)).map((item: any) => item.id);
+            ec2_instance_list.forEach((topItem: any) => aws_ec2.some((existItem: any) => { if (existItem.id === topItem.id) { topItem.checked = true; } else { topItem.checked = false; } }))
+            const updatedrdsList: any = rds_identifiers.filter((topItem: any) => aws_rds.some((existItem: any) => existItem.id === topItem.id)).map((item: any) => item.id);
+            rds_identifiers.forEach((topItem: any) => aws_rds.some((existItem: any) => { if (existItem.id === topItem.id) { topItem.checked = true; } else { topItem.checked = false; } }))
+            const updatedvmList: any = vmList.filter((topItem: any) => aws_rds.some((existItem: any) => existItem.id === topItem.id)).map((item: any) => item.id);
+            vmList.forEach((topItem: any) => aws_rds.some((existItem: any) => { if (existItem.id === topItem.id) { topItem.checked = true; } else { topItem.checked = false; } }))
             setEC2(updatedec2List);
             setRDS(updatedrdsList)
-            console.log("updated_proj",updatedec2List, updatedrdsList)
-            // setVM(vmList);
-            setFormValues({ id: selectedId, name: name, ec2Instances: selectedEc2, rdsIdentifiers: selectedRDS, vmInstances: [] });
+            setFormValues({ "id": id, "name": proj_name, "ec2Instances": updatedec2List, "rdsIdentifiers": updatedrdsList, "vmInstances": updatedvmList })
+
             var filtered_ec2_list = ec2_instance_list.filter((item: any) => !item.status.includes("termin"));
             var filtered_rds_list = rds_identifiers.filter((item: any) => !item.status.includes("delet"));
-            var ec2Instance = ec2_instance_list.find((item: any) => item.id === item.id);
-            setEC2List(filtered_ec2_list);
+            var defaultOptions: any = []
+            ec2_instance_list.forEach((topItem: any) => { defaultOptions.push({ label: topItem.name, value: topItem.id }) })
+
+            setEC2List(defaultOptions);
             setRDSList(filtered_rds_list);
             setVMList(vmList)
-            form.setFieldsValue({ id: selectedId, name: name, ec2Instances: selectedEc2, rdsIdentifiers: selectedRDS })
-            console.log("formvalues",formValues)
-
         })
     }
-  
-    
-    const fetchProjectsFromDB = async (id: any) => {
+    const fetchProjectsFromDB = async (record: any) => {
         try {
             axios.get('/api/get-project-list', {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `${token}`,
-                    id,
+                    id: record.id,
                     isSuperAdmin,
                 }
             }).then((response: any) => {
-                // debugger;
-                if (id == "") {
+                if (record.id == "") {
                     setProjects(response.data.projectList)
                 } else {
-                   
-                    getProjectList(response.data.aws_ec2_list, response.data.aws_rds_list)
+                    getProjectList(response.data.aws_ec2_list, response.data.aws_rds_list, record.id, record.project_name)
                 }
 
             })
@@ -206,41 +210,41 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
   
            
   
-        const getProjectByID= async (id: any) => {
-            try{
-                axios.get('/api/get-project-byid', {
-                    params: {id},
-                    headers: {
-                        // 'Content-Type': 'application/json',
-                        'Authorization': `${token}`,
-                    }
-                }).then((response: any) => {
-                    setProjectList(response.data.project_details);
-                    // test=response.data.project_details;
-                    // list=response.data.aws_ec2_list;
-                    if (response.data.aws_ec2_list && response.data.aws_ec2_list.length > 0) {
-                        setCheckboxOptions(response.data.aws_ec2_list);
-                        // console.log("checkbox",setCheckboxOptions)
-                    }
-                    else if (response.data.aws_rds_list && response.data.aws_rds_list.length > 0) {
-                        setCheckboxOptions(response.data.aws_rds_list);
-                    }
-                    else if (response.data.vmList && response.data.vmList.length > 0) {
-                        setCheckboxOptions(response.data.vmList);
-                    }
-                    else {
+        // const getProjectByID= async (id: any) => {
+        //     try{
+        //         axios.get('/api/get-project-byid', {
+        //             params: {id},
+        //             headers: {
+        //                 // 'Content-Type': 'application/json',
+        //                 'Authorization': `${token}`,
+        //             }
+        //         }).then((response: any) => {
+        //             setProjectList(response.data.project_details);
+        //             // test=response.data.project_details;
+        //             // list=response.data.aws_ec2_list;
+        //             if (response.data.aws_ec2_list && response.data.aws_ec2_list.length > 0) {
+        //                 setCheckboxOptions(response.data.aws_ec2_list);
+        //                 // console.log("checkbox",setCheckboxOptions)
+        //             }
+        //             else if (response.data.aws_rds_list && response.data.aws_rds_list.length > 0) {
+        //                 setCheckboxOptions(response.data.aws_rds_list);
+        //             }
+        //             else if (response.data.vmList && response.data.vmList.length > 0) {
+        //                 setCheckboxOptions(response.data.vmList);
+        //             }
+        //             else {
                     
-                    }
+        //             }
                    
-                    console.log("selected proj",response.data.project_details);
-                    console.log("ec2list",response.data.aws_ec2_list);
-                    console.log("rdslist",response.data.aws_rds_list);
-                    console.log("vmlist",response.data.vmList);
-                })
-            } catch (error) {
-                console.error(error);
-            }
-        };
+        //             console.log("selected proj",response.data.project_details);
+        //             console.log("ec2list",response.data.aws_ec2_list);
+        //             console.log("rdslist",response.data.aws_rds_list);
+        //             console.log("vmlist",response.data.vmList);
+        //         })
+        //     } catch (error) {
+        //         console.error(error);
+        //     }
+        // };
 
 
     
@@ -262,27 +266,34 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         try {
 
             axios.post('/api/add-project', formValues, { headers: { 'Authorization': token, action, userID } }).then((response: any) => {
-                getProjectList([], [])
-                console.log("testresponse",response.data)
+                getProjectList([], [], "", "")
                 notification.success({
                     message: 'Success',
                     description: response.data.message,
                     placement: 'topRight',
                     duration: 3
                 });
+                setFormValues({
+                    id: "",
+                    name: '',
+                    ec2Instances: [],
+                    rdsIdentifiers: [],
+                    vmInstances: []
+                })
                 form.resetFields();
                 setAction("add")
-                setAddUser(false);
-                // setEC2List([]);
-                // setRDSList([]);
-                // setVMList([]);
-                fetchProjectsFromDB("");
-                // setName("");
-                // setID("");
+                setShowList(true);
+                setAddProject(false);
+                setEC2List([]);
+                setRDSList([]);
+                setVMList([]);
+                fetchProjectsFromDB({ id: "", project_name: "" });
+                setName("");
+                setID("");
             }).catch((error: any) => {
                 notification.error({
                     message: 'Info',
-                    description: error.response.data.message,
+                    description: error.response.data.error,
                     placement: 'topRight',
                     duration: 3
                 });
@@ -290,300 +301,160 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         } catch (error: any) {
             notification.error({
                 message: 'Info',
-                description: error.response.data.message,
+                description: error.response.data.error,
                 placement: 'topRight',
                 duration: 3
             });
         }
     };
-
-
-    const editFormSubmit = async(event: any) => {
-        try {
-
-            await axios.post('/api/add-project', formValues, { headers: { 'Authorization': token, action, userID } }).then((response: any) => {
-                // getProjectList([], [])
-                console.log("testresponse",response.data)
-                notification.success({
-                    message: 'Success',
-                    description: response.data.message,
-                    placement: 'topRight',
-                    duration: 3
-                });
-                // form.resetFields();
-                setAction("add")
-                setAddUser(false);
-                // setEC2List([]);
-                // setRDSList([]);
-                // setVMList([]);
-                // fetchProjectsFromDB("");
-                // setName("");
-                // setID("");
-            }).catch((error: any) => {
-                notification.error({
-                    message: 'Info',
-                    description: error.response.data.message,
-                    placement: 'topRight',
-                    duration: 3
-                });
-            })
-        } catch (error: any) {
-            notification.error({
-                message: 'Info',
-                description: error.response.data.message,
-                placement: 'topRight',
-                duration: 3
-            });
-        }
+    const handleOk = () => {
+        setOpen(false);
+        setAction("add")
+        setShowList(true)
+        setAddProject(false);
+        setEC2List([]);
+        setRDSList([]);
+        setVMList([]);
+        fetchProjectsFromDB({ id: "", project_name: "" });
+        setName("");
+        setID("");
     };
 
-
+    const handleCancel = () => {
+        // console.log('Clicked cancel button');
+        setOpen(false);
+    };
     return (
         <Layout>
+            <Modal
+                title="Title"
+                open={open}
+                onOk={handleOk}
+                onCancel={handleCancel}
+            >
+                <p>Are you sure you wan to go back to list?</p>
+            </Modal>
+            <Head>
+                <title>InterCloud Manager</title>
+                <meta name="description" content="Generated by create next app" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <link rel="icon" href="/favicon.ico" />
+            </Head>
             <HeaderComponent title="Projects" />
             <Content style={{ padding: "50px", display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
+                <>
 
-                {showAddUser ? (
-                    showProjEdit ? (
-
-                //edit project
+                    {showAddProject ? (
                         <div style={{ width: "50%" }}>
-                     
-                        <div style={{ marginBottom: "20px" }}>
+                            {/* Add project form goes here */}
+                            <div style={{ marginBottom: "20px" }}>
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <h1>Edit Projects</h1>
-                                <Button type="primary" onClick={() => {
-                                    setAction("add")
-                                    setAddUser(false);
-                                    setEC2List([]);
-                                    setRDSList([]);
-                                    setVMList([]);
-                                    fetchProjectsFromDB("");
-                                    setName("");
-                                    setID("");
-                                }}>Back to List</Button>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <h1>Add Projects</h1>
+                                    <Button type="primary" onClick={() => {
+                                        showModal()
+                                    }}>Back to List</Button>
+                                </div>
+
                             </div>
 
-                        </div>
-
-                        <Form form={form} initialValues={{ remember: true }}
-                            onFinish={editFormSubmit}
-                            onValuesChange={handleeditFormValuesChange}
-                        >
-
-                            <Form.Item
-                                label="Project Name"
-                                // name="name"
-                               
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: 'Please input the project name!',
-                                    },
-                                ]}
+                            <Form form={form}
+                                onFinish={handleFormSubmit}
+                                onValuesChange={handleFormValuesChange}
+                                initialValues={formValues}
                             >
-                              <Input type="text" value={name} onChange={(e) => setName(e.target.value)} />
-                         
-                                {/* <Input disabled={action === "edit"} /> */}
-                            </Form.Item>
-{/* 
-                            <Form.Item
-                                label="EC2 Instances"
-                                valuePropName="value"
-                                // name="ec2Instances"
-                            >
-                                <Checkbox.Group name="ec2Instances" defaultValue={selectedEc2}>
-                                    {selectedEc2.map((ec2: any) => (
-                                         <Checkbox.Group name="ec2Instances" defaultValue={selectedEc2}>
-                                         {ec2List.map((ec2: any) => (
-                                             <Checkbox key={ec2.id} value={ec2.id} checked={action == "edit" ? ec2.checked : false}>
-                                                 {ec2.name}
-                                             </Checkbox>
-                                         ))}
-                                     </Checkbox.Group>
-                                    
-                                    ))}
-                                </Checkbox.Group> */}
-                                {/* disabled={(action == "add" && ec2.is_mapped)} */}
-                            {/* </Form.Item> */}
-
-                            
-                            <Form.Item
-                                label="EC2 Instances"
-                                valuePropName="value"
-                                // name="ec2Instances"
-                            >
-                                <Checkbox.Group >
-                                {checkboxOptions.map((option, index) => (
-                        <Checkbox key={index} value={option}>
-                            {option}
-                        </Checkbox>
-                    ))}
-                                     </Checkbox.Group>
-                                    
-                                
-                            
-                            </Form.Item>
-                            <Form.Item
-                                label="RDS Identifiers"
-                                // name="rdsIdentifiers"
-                                valuePropName="value"
-                            >
-                                <Checkbox.Group name="rdsIdentifiers" defaultValue={selectedRDS}>
-                                    {rdsList.map((rdsList: any) => (
-                                        <React.Fragment>
-                                            <Checkbox key={rdsList.id} value={rdsList.id} checked={action == "edit" ? rdsList.checked : false}>
-                                                {rdsList.name}
-                                            </Checkbox>
-                                          
-                                        </React.Fragment>
-                                    ))}
-                                    {/* disabled={(action == "add" && rds.is_mapped)}  */}
-                                </Checkbox.Group>
-                            </Form.Item>
-                            <Form.Item
-                                label="VM Instances"
-                                // name="vmInstances"
-                                valuePropName="value"
-                            >
-                                <Checkbox.Group name="vmInstances" defaultValue={selectedVM}>
-                                    {vmList.map((rdsList: any) => (
-                                        <Checkbox key={rdsList.id} value={rdsList.id}>
-                                            {rdsList.name}
+                                <Form.Item
+                                    label="Project Name"
+                                    name="name"
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message: 'Please input the project name!',
+                                        },
+                                    ]}
+                                >
+                                    <Input defaultValue={name} disabled={action === "edit"} />
+                                </Form.Item>
+                                <Form.Item
+                                    label="EC2 Instances"
+                                    // valuePropName="value"
+                                    name="ec2Instances"
+                                >
+                                    <Checkbox.Group
+                                        options={ec2List}
+                                        defaultValue={selectedEc2}
+                                    // onChange={onChange}
+                                    />
+                                    {/* <Checkbox.Group name="ec2Instances" defaultValue={selectedEc2}>
+                                    {ec2List.map((ec2: any) => (
+                                        <Checkbox key={ec2.id} value={ec2.id} checked={action == "edit" ? ec2.checked : false}>
+                                            {ec2.name}
                                         </Checkbox>
                                     ))}
-                                    {/* disabled={rds.is_mapped} */}
-                                </Checkbox.Group>
-                            </Form.Item>
-                            <Form.Item>
-                                <Button 
-                                    // style={{ cursor: isFormValid() ? 'pointer' : 'not-allowed', opacity: isFormValid() ? 1 : 0.5 }}
-                                    type="primary"
-                                    htmlType="submit"
-                                    // disabled
-                                    // disabled={!isFormValid()}
-                                    onClick={() => {
-                      
-                                        setAction("edit");
-                                        setAddUser(true);
-                                        console.log("onclickedit",formValues)
-                                        console.log(action)
-                                        // updateProject(record);
-                                    }}
-                                > 
-                                   {action === "add" ? "Add Project" : "Edit Project"}
-                                </Button>
-                            </Form.Item>
-                        </Form>
-                    </div>
-
-
-
-                        ) : (
-                                <div style={{ width: "50%" }}>
-                                    {/* Add project form goes here */}
-                                    <div style={{ marginBottom: "20px" }}>
-
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <h1>Add Projects</h1>
-                                            <Button type="primary" onClick={() => {
-                                                setAction("add")
-                                                setAddUser(false);
-                                                setEC2List([]);
-                                                setRDSList([]);
-                                                setVMList([]);
-                                                fetchProjectsFromDB("");
-                                                setName("");
-                                                setID("");
-                                            }}>Back to List</Button>
-                                        </div>
-
-                                    </div>
-
-                                    <Form form={form} initialValues={{ remember: true }}
-                                        onFinish={handleFormSubmit}
-                                        onValuesChange={handleFormValuesChange}
+                                </Checkbox.Group> */}
+                                    {/* disabled={(action == "add" && ec2.is_mapped)} */}
+                                </Form.Item>
+                                <Form.Item
+                                    label="RDS Identifiers"
+                                    name="rdsIdentifiers"
+                                // valuePropName="value"
+                                >
+                                    {/* value={selectedRDS} */}
+                                    <Checkbox.Group value={selectedRDS} >
+                                        {rdsList.map((rds: any) => (
+                                            <Checkbox key={rds.id} value={rds.id} checked={action == "edit" ? rds.checked : false}>
+                                                {rds.name}
+                                            </Checkbox>
+                                        ))}
+                                        {/* disabled={(action == "add" && rds.is_mapped)}  */}
+                                    </Checkbox.Group>
+                                </Form.Item>
+                                <Form.Item
+                                    label="VM Instances"
+                                    name="vmInstances"
+                                    valuePropName="value"
+                                >
+                                    {/* value={selectedVM} */}
+                                    <Checkbox.Group name="vmInstances" value={selectedVM}>
+                                        {vmList.map((rds: any) => (
+                                            <Checkbox key={rds.id} value={rds.id}>
+                                                {rds.name}
+                                            </Checkbox>
+                                        ))}
+                                        {/* disabled={rds.is_mapped} */}
+                                    </Checkbox.Group>
+                                </Form.Item>
+                                <Form.Item>
+                                    <Button style={{ cursor: isFormValid() ? 'pointer' : 'not-allowed', opacity: isFormValid() ? 1 : 0.5 }}
+                                        type="primary"
+                                        htmlType="submit"
+                                        disabled={!isFormValid()}
                                     >
-                                        <Form.Item
-                                            label="Project Name"
-                                            name="name"
-                                            rules={[
-                                                {
-                                                    required: true,
-                                                    message: 'Please input the project name!',
-                                                },
-                                            ]}
-                                        >
-                                            <Input disabled={action === "edit"} />
-                                        </Form.Item>
-                                        <Form.Item
-                                            label="EC2 Instances"
-                                            valuePropName="value"
-                                            name="ec2Instances"
-                                        >
-                                            <Checkbox.Group name="ec2Instances" defaultValue={selectedEc2}>
-                                                {ec2List.map((ec2: any) => (
-                                                    <Checkbox key={ec2.id} value={ec2.id} checked={action == "edit" ? ec2.checked : false}>
-                                                        {ec2.name}
-                                                    </Checkbox>
-                                                ))}
-                                            </Checkbox.Group>
-                                            {/* disabled={(action == "add" && ec2.is_mapped)} */}
-                                        </Form.Item>
-                                        <Form.Item
-                                            label="RDS Identifiers"
-                                            name="rdsIdentifiers"
-                                            valuePropName="value"
-                                        >
-                                            <Checkbox.Group name="rdsIdentifiers" defaultValue={selectedRDS}>
-                                                {rdsList.map((rds: any) => (
-                                                    <Checkbox key={rds.id} value={rds.id} checked={action == "edit" ? rds.checked : false}>
-                                                        {rds.name}
-                                                    </Checkbox>
-                                                ))}
-                                                {/* disabled={(action == "add" && rds.is_mapped)}  */}
-                                            </Checkbox.Group>
-                                        </Form.Item>
-                                        <Form.Item
-                                            label="VM Instances"
-                                            name="vmInstances"
-                                            valuePropName="value"
-                                        >
-                                            <Checkbox.Group name="vmInstances" defaultValue={selectedVM}>
-                                                {vmList.map((rds: any) => (
-                                                    <Checkbox key={rds.id} value={rds.id}>
-                                                        {rds.name}
-                                                    </Checkbox>
-                                                ))}
-                                                {/* disabled={rds.is_mapped} */}
-                                            </Checkbox.Group>
-                                        </Form.Item>
-                                        <Form.Item>
-                                            <Button style={{ cursor: isFormValid() ? 'pointer' : 'not-allowed', opacity: isFormValid() ? 1 : 0.5 }}
-                                                type="primary"
-                                                htmlType="submit"
-                                                disabled={!isFormValid()}
-                                            >
-                                                {action === "add" ? "Add Project" : "Edit Project"}
-                                            </Button>
-                                        </Form.Item>
-                                    </Form>
-                                </div>
-                      )
-                  ) : (
-                    <div style={{ width: "100%" }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h2>Projects List</h2>
-                            <Button type="primary" onClick={()=>{setAddUser(true); setProjEdit(false); handleAddProject}} >
-                                Add Project
-                            </Button>
+                                        Add Project
+                                    </Button>
+                                </Form.Item>
+                            </Form>
                         </div>
-                        <Table columns={columns} dataSource={projects} style={{ marginTop: '20px' }} />
-                    </div>
-                     )
-            }
+                    ) : null}
+                    {showList ? (
+                        <div style={{ width: "100%" }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <h2>Projects List</h2>
+                                <Button type="primary" onClick={handleAddProject} >
+                                    Add Project
+                                </Button>
+                            </div>
+                            <Table columns={columns} dataSource={projects} style={{ marginTop: '20px' }} />
+                        </div>
+                    ) : null}
+                    {
+                        showEdit ? (<>
+                            <EditProjectsByListingEC2ListandRDSList data={editDetails} onClose={() => { setShowList(true); setShowEdit(false) }} />
+                        </>) : null
+                    }
+                </>
             </Content>
+
         </Layout>
     )
 }

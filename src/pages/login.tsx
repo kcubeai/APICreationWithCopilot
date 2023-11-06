@@ -9,8 +9,11 @@ export default function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+
     const { setToken, setIsAdmin, setisUser, setIsSuperAdmin, setUserId } = useAuth()
     const router = useRouter()
+    const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 
         event.preventDefault();
@@ -43,7 +46,7 @@ export default function Login() {
     };
 
     const isFormValid = () => {
-        return username !== '' && password !== '';
+        return username !== '' && password !== '' && passwordRegex.test(password);
     }
 
     return (
@@ -52,9 +55,17 @@ export default function Login() {
                 <h1 style={{ marginBottom: '20px' }}>Login</h1>
                 {error && <p style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
                 <label htmlFor="username" style={{ marginBottom: '10px' }}>Username</label>
-                <input id="username" type="text" value={username} onChange={(e) => setUsername(e.target.value)} style={{ marginBottom: '20px', padding: '5px' }} />
+                <input id="username" type="text" value={username} onChange={(e) => {
+                    if (!/\s/.test(e.target.value)) {
+                        setUsername(e.target.value);
+                        setError('');
+                    } else {
+                        // setError('Username cannot contain spaces');
+                    }
+                }} style={{ marginBottom: '20px', padding: '5px' }} />
                 <label htmlFor="password" style={{ marginBottom: '10px' }}>Password</label>
                 <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={{ marginBottom: '20px', padding: '5px' }} />
+                {/* <h6 style={{ marginBottom: '20px', padding: '5px' }}>Note:one special character and  one numerical character required</h6> */}
                 <button type="submit" style={{ padding: '5px 10px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '5px', cursor: isFormValid() ? 'pointer' : 'not-allowed', opacity: isFormValid() ? 1 : 0.5 }} disabled={!isFormValid()}>Login</button>
             </form>
         </div>

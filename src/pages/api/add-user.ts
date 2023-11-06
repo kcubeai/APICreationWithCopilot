@@ -11,7 +11,7 @@ import { logger } from '@/shared/logger';
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     logger.debug(`[${req.method} ${req.url}] - Request received with body: ${JSON.stringify(req.body)}`);
-    const { id, username, password, role,isadmin,issuperadmin,isuser,project,ec2Instances,rdsIdentifiers,vmInstances,update_project_id } = req.body;
+    const { id, username, password, role,isadmin,issuperadmin,isuser,project,ec2Instances,rdsIdentifiers,vmInstances,updated_project_id } = req.body;
     const action = req.headers['action'];
     const authorization: any = req.headers['authorization'];
     const userID: any = req.headers['userid']
@@ -76,10 +76,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             else if (action == 'edit') {
 
                 try {
-                    if (update_project_id && update_project_id.length > 0) {
-                       const update_project_detail = await DBCONNECT(`SELECT update_user_projects4(${id}, ARRAY[${update_project_id}])`);
+                    console.log("update_project_id",updated_project_id, id)
+                    if (updated_project_id && updated_project_id.length > 0) {
+                       const update_project_detail = await DBCONNECT(`SELECT update_user_project(${id}, ARRAY[${updated_project_id}])`);
+                     }
+
+
+                    if (ec2Instances && ec2Instances.length >0) {
+                        const aws_ec2_string = ec2Instances.map((value: any) => `'${value}'`).join(', ');
+                         const update_ec2_detail = await DBCONNECT(`SELECT update_user_ec2(${id}, ARRAY[${aws_ec2_string}])`);
+                        console.log("update_ec2_detail",update_ec2_detail)
                        
-                }
+                        }
+                        else{const delete_ec2_user= await DBCONNECT(`delete from users_assigned_with_ec2 where user_id=${id}`)}
+                  
+
+                     if ( rdsIdentifiers && rdsIdentifiers.length >0) {
+                        console.log("rdsIdentifiers..........",rdsIdentifiers, id)
+                        const aws_rds_string = rdsIdentifiers.map((value: any) => `'${value}'`).join(', ');
+                       console.log("aws_rds_string",aws_rds_string)
+                        const update_rds_detail = await DBCONNECT(`SELECT update_user_rds(${id}, ARRAY[${aws_rds_string}])`);
+                        console.log("update_rds_detail",update_rds_detail)
+                  
+                        }
+                        else{
+                            const delete_rds_user = await DBCONNECT(`delete from users_assigned_with_rds where user_id=${id}`)
+                        }
+                    if (vmInstances && vmInstances.length >0) {
+                        const gcp_vm_string = vmInstances.map((value: any) => `'${value}'`).join(', ');
+                        console.log("gcp_vm_string",gcp_vm_string)
+                        const update_vm_detail = await DBCONNECT(`SELECT update_user_vm(${id}, ARRAY[${gcp_vm_string}])`);
+                        console.log("update_vm_detail",update_vm_detail)
+                       
+                        }
+                        else{
+                            const delete_vm_user = await DBCONNECT(`delete from users_assigned_with_vm where user_id=${id}`)
+                        }
+
+
+                        res.status(200).json({ message: 'User added successfully' });
+
+                    
+                     
+
               
 
 
