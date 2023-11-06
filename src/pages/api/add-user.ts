@@ -11,7 +11,7 @@ import { logger } from '@/shared/logger';
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     logger.debug(`[${req.method} ${req.url}] - Request received with body: ${JSON.stringify(req.body)}`);
-    const { id, username, password, role } = req.body;
+    const { id, username, password, role,isadmin,issuperadmin,isuser,project,ec2Instances,rdsIdentifiers,vmInstances,update_project_id } = req.body;
     const action = req.headers['action'];
     const authorization: any = req.headers['authorization'];
     const userID: any = req.headers['userid']
@@ -72,6 +72,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 const user_data = await DBCONNECT(`select * from public.user_detail where id=${id}`);
                 res.status(200).json({ status: 200, message: 'User Details', user_data});
             }
+
+            else if (action == 'edit') {
+
+                try {
+                    if (update_project_id && update_project_id.length > 0) {
+                       const update_project_detail = await DBCONNECT(`SELECT update_user_projects4(${id}, ARRAY[${update_project_id}])`);
+                       
+                }
+              
+
+
+            }
+
+            catch (error) {
+                logger.error(`[${req.method} ${req.url} ] Error in editing the user list`)
+                res.status(500).json({ message: 'Error in editing the user list' });
+            }
+        }
+
 
 
 
