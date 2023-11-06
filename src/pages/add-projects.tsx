@@ -13,7 +13,7 @@ const { Content } = Layout;
 const { useForm } = Form;
 
 export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
-    const [showAddUser, setAddUser] = useState<boolean>(false)
+    const [showAddProject, setAddProject] = useState<boolean>(false)
     const [showList, setShowList] = useState<boolean>(true);
     const { token, isSuperAdmin, isAdmin, isUser, userID } = useAuth()
     const router = useRouter()
@@ -112,7 +112,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
     const handleFormValuesChange = (changedValues: any, allValues: any) => {
         setFormValues(allValues);
         setShowList(false);
-        setAddUser(true);
+        setAddProject(true);
     };
     useEffect(() => {
         if (token == "") {
@@ -126,7 +126,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         // Add new project to the list
         setAction("add")
         setShowList(false);
-        setAddUser(true);
+        setAddProject(true);
         getProjectList([], [], "", "")
     };
     const getProjectList = async (aws_ec2: any, aws_rds: any, id: any, proj_name: any) => {
@@ -201,7 +201,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                 form.resetFields();
                 setAction("add")
                 setShowList(true);
-                setAddUser(false);
+                setAddProject(false);
                 setEC2List([]);
                 setRDSList([]);
                 setVMList([]);
@@ -239,7 +239,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
             <Content style={{ padding: "50px", display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
                 <>
 
-                    {showAddUser ? (
+                    {showAddProject ? (
                         <div style={{ width: "50%" }}>
                             {/* Add project form goes here */}
                             <div style={{ marginBottom: "20px" }}>
@@ -249,7 +249,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                                     <Button type="primary" onClick={() => {
                                         setAction("add")
                                         setShowList(true)
-                                        setAddUser(false);
+                                        setAddProject(false);
                                         setEC2List([]);
                                         setRDSList([]);
                                         setVMList([]);
