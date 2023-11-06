@@ -46,7 +46,7 @@ export default function Login() {
     };
 
     const isFormValid = () => {
-        return username !== '' && password !== '' && passwordRegex.test(password);;
+        return username !== '' && password !== '' && passwordRegex.test(password);
     }
 
     return (

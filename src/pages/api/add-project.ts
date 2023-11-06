@@ -32,11 +32,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
             if (action == "delete") {
                 try {
-                    const delete_project_from_service_assigned_with_projects = await DBCONNECT(`delete from service_assigned_with_projects where project_id=${id}`)
+                    const delete_query = await DBCONNECT(`update projects set isactive=false where id=${id} returning project_name`);
 
+                    // const delete_project_from_service_assigned_with_projects = await DBCONNECT(`delete from service_assigned_with_projects where project_id=${id}`)
 
+                    const delete_project_from_service_assigned_with_projects = await DBCONNECT(`update service_assigned_with_projects set isactive=false where project_id=${id}`)
                     const users_projects = await DBCONNECT(`delete from users_assigned_with_projects where project_id=${id}`);
-                    const delete_query = await DBCONNECT(`delete from projects where id=${id} returning project_name`);
+                    // // const delete_query = await DBCONNECT(`delete from projects where id=${id} returning project_name`);
                     const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'deleted the project "${delete_query.rows[0].project_name}" with id ${id}',NOW(),'${username.rows[0].username}')`);
                     res.status(200).json({ message: 'Project Deleted Successfully' })
                 } catch (error) {
@@ -49,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             } else if (action == "add") {
 
                 try {
-                    const insertQuery = `INSERT INTO projects (project_name) VALUES ('${name}') RETURNING id;`
+                    const insertQuery = `INSERT INTO projects (project_name,isactive) VALUES ('${name}',true) RETURNING id;`
 
                     const result = await DBCONNECT(insertQuery);
                     const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'added the project "${name}" with id ${result.rows[0].id}',NOW(),'${username.rows[0].username}')`);
@@ -59,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             console.log(ec2Instances)
                             // const aws_ec2_update_query = `update ec2_instances set is_mapped=true,project_id=${result.rows[0].id} where id in (${aws_ec2_string}) `
                             // const ec2_update = await DBCONNECT(aws_ec2_update_query)
-                            const service_assigned_query = await DBCONNECT(`insert into service_assigned_with_projects(service_id,service_type,project_id) SELECT unnest(ARRAY[${aws_ec2_string}]), 'ec2',${result.rows[0].id};`)
+                            const service_assigned_query = await DBCONNECT(`insert into service_assigned_with_projects(service_id,service_type,isactive,project_id) SELECT unnest(ARRAY[${aws_ec2_string}]), 'ec2',true,${result.rows[0].id};`)
                             console.log(service_assigned_query.rows);
                         }
                         if (rdsIdentifiers && rdsIdentifiers.length > 0) {
@@ -67,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                             // const aws_rds_update_query = `update rds_identifiers set is_mapped=true,project_id=${result.rows[0].id} where id in (${aws_rds_string}) `
                             // const rds_update = await DBCONNECT(aws_rds_update_query);
-                            const service_assigned_query = await DBCONNECT(`insert into service_assigned_with_projects(service_id,service_type,project_id) SELECT unnest(ARRAY[${aws_rds_string}]), 'rds',${result.rows[0].id};`)
+                            const service_assigned_query = await DBCONNECT(`insert into service_assigned_with_projects(service_id,service_type,isactive,project_id) SELECT unnest(ARRAY[${aws_rds_string}]), 'rds',true,${result.rows[0].id};`)
                             console.log(service_assigned_query.rows);
                         }
                         if (vmInstances && vmInstances.length > 0) {
@@ -75,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                             // const gcp_vm_update_query = `update vm_instances set is_mapped=true,project_id=${result.rows[0].id} where id in (${gcp_vm_string}) `
                             // const gcp_vm_update = await DBCONNECT(gcp_vm_update_query);
-                            const service_assigned_query = await DBCONNECT(`insert into service_assigned_with_projects(service_id,service_type,project_id) SELECT unnest(ARRAY[${gcp_vm_string}]), 'vm',${result.rows[0].id};`)
+                            const service_assigned_query = await DBCONNECT(`insert into service_assigned_with_projects(service_id,service_type,isactive,project_id) SELECT unnest(ARRAY[${gcp_vm_string}]), 'vm',true,${result.rows[0].id};`)
                             console.log(service_assigned_query);
                         }
                     }

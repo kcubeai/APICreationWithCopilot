@@ -51,8 +51,8 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                 // list.rows.forEach((instance: any) => {
                                 for (const instance of list.rows) {
                                     // if (instance.project_id) {
-                                    const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${instance.id}') `)
-                                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${instance.id}'`)
+                                    const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${instance.id}' and isactive=true) and isactive=true `)
+                                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${instance.id}' and isactive=true`)
                                     console.log(search_query.rows[0].jsonb_agg)
                                     // const search = await DBCONNECT(`Select project_name from projects where id=${instance.project_id}`);
                                     // if (search.rows.length > 0) {
@@ -82,14 +82,14 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                 for (const project of listofProject.rows) {
                                     // const search = await DBCONNECT(`Select project_name from projects where id in${project.project_id}`);
                                     // const ec2_list = await DBCONNECT(`Select * from ec2_instances where project_id=${project.project_id}`);
-                                    const ec2_list = await DBCONNECT(`Select * from ec2_instances where id in (select service_id from service_assigned_with_projects where project_id in (Select project_id from users_assigned_with_projects where user_id=${id}) )`)
+                                    const ec2_list = await DBCONNECT(`Select * from ec2_instances where id in (select service_id from service_assigned_with_projects where project_id in (Select project_id from users_assigned_with_projects where user_id=${id}) and isactive=true )`)
                                     if (ec2_list.rows.length > 0) {
 
                                         // ec2_list.rows.forEach((item: any) => {
                                         for (const item of ec2_list.rows) {
                                             const project_name =
-                                                await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}')`)
-                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
+                                                await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}' and isactive=true) and isactive=true`)
+                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}' and isactive=true`)
                                             const isObjectWithIdPresent = instanceList.some((obj: any) => obj.id === item.id);
                                             if (!isObjectWithIdPresent) {
 
@@ -124,8 +124,8 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                             // if (item.project_id) {
 
                                             //     const search = await DBCONNECT(`Select project_name from projects where id=${item.project_id}`);
-                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${project.instance_id}'`)
-                                            const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${project.instance_id}') `)
+                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${project.instance_id}' and isactive=true`)
+                                            const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${project.instance_id}' and isactive=true) and isactive=true `)
 
                                             instanceList.push({
                                                 id: item.id,
@@ -161,8 +161,8 @@ export default async function handler(request: NextApiRequest, response: NextApi
                             if (list.rows.length > 0) {
                                 for (const instance of list.rows) {
                                     // if (instance.project_id) {
-                                    const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${instance.id}') `)
-                                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${instance.id}'`)
+                                    const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${instance.id}' and isactive=true) and isactive=true`)
+                                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${instance.id}' and isactive=true`)
                                     console.log(search_query.rows)
                                     // const search = await DBCONNECT(`Select project_name from projects where id=${instance.project_id}`);
                                     // if (search.rows.length > 0) {
@@ -194,13 +194,13 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                     // const search = await DBCONNECT(`Select project_name from projects where id=${project.project_id}`);
 
                                     // const ec2_list = await DBCONNECT(`Select * from rds_identifiers where project_id=${project.project_id}`);
-                                    const ec2_list = await DBCONNECT(`Select * from rds_identifiers where id in (select service_id from service_assigned_with_projects where project_id in (Select project_id from users_assigned_with_projects where user_id=${id}) )`);
+                                    const ec2_list = await DBCONNECT(`Select * from rds_identifiers where id in (select service_id from service_assigned_with_projects where project_id in (Select project_id from users_assigned_with_projects where user_id=${id}) and isactive=true)`);
                                     if (ec2_list.rows.length > 0) {
                                         // ec2_list.rows.forEach((item: any) => {
                                         for (const item of ec2_list.rows) {
                                             const project_name =
-                                                await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}')`)
-                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
+                                                await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}' and isactive=true) and isactive=true`)
+                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}' and isactive=true`)
 
                                             const isObjectWithIdPresent = instanceList.some((obj: any) => obj.id === item.id);
                                             if (!isObjectWithIdPresent) {
@@ -234,8 +234,8 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                         for (const item of ec2_list.rows) {
                                             // if (item.project_id) {
                                             // const search = await DBCONNECT(`Select project_name from projects where id=${item.project_id}`);
-                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
-                                            const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}') `)
+                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}' and isactive=true`)
+                                            const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}' and isactive=true) and isactive=true`)
 
                                             instanceList.push({
                                                 id: item.id,
@@ -272,8 +272,8 @@ export default async function handler(request: NextApiRequest, response: NextApi
                             if (list.rows.length > 0) {
                                 for (const instance of list.rows) {
                                     // if (instance.project_id) {
-                                    const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${instance.id}') `)
-                                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${instance.id}'`)
+                                    const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${instance.id}' and isactive=true) and isactive=true`)
+                                    const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${instance.id}' and isactive=true`)
                                     console.log(search_query.rows)
                                     // const search = await DBCONNECT(`Select project_name from projects where id=${instance.project_id}`);
                                     // if (search.rows.length > 0) {
@@ -304,13 +304,13 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                     // const search = await DBCONNECT(`Select project_name from projects where id=${project.project_id}`);
 
                                     // const ec2_list = await DBCONNECT(`Select * from vm_instances where project_id=${project.project_id}`);
-                                    const ec2_list = await DBCONNECT(`Select * from vm_instances where id in (select service_id from service_assigned_with_projects where project_id in (Select project_id from users_assigned_with_projects where user_id=${id}) )`)
+                                    const ec2_list = await DBCONNECT(`Select * from vm_instances where id in (select service_id from service_assigned_with_projects where project_id in (Select project_id from users_assigned_with_projects where user_id=${id}) and isactive=true)`)
                                     if (ec2_list.rows.length > 0) {
                                         for (const item of ec2_list.rows) {
                                             // ec2_list.rows.forEach((item: any) => {
                                             const project_name =
-                                                await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}')`)
-                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
+                                                await DBCONNECT(`select jsonb_agg(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}' and isactive=true) and isactive=true`)
+                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}' and isactive=true`)
                                             const isObjectWithIdPresent = instanceList.some((obj: any) => obj.id === item.id);
                                             if (!isObjectWithIdPresent) {
                                                 instanceList.push({
@@ -345,8 +345,8 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                             // if (item.project_id) {
 
                                             // const search = await DBCONNECT(`Select project_name from projects where id=${item.project_id}`);
-                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}'`)
-                                            const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}') `)
+                                            const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${item.id}' and isactive=true`)
+                                            const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${item.id}' and isactive=true) and isactive=true`)
 
                                             instanceList.push({
                                                 id: item.id,
