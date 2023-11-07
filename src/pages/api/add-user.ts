@@ -55,18 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             //     res.status(200).json({ status: 200, message: 'User updated successfully', userList: user_list.rows });
             // }
 
-            // else if (action == 'get') {
-            //     // view particular user details
-            //     const user_detail = await DBCONNECT(`select * from public.user_detail where id=${id}`);
-            //     // const user_project = await DBCONNECT(`select project_id from users_projects where user_id=${id}`);
-            //     // const user_ec2 = await DBCONNECT(`select instance_id from users_ec2 where user_id=${id}`);
-            //     // const user_rds = await DBCONNECT(`select identifier_id from users_rds where user_id=${id}`);
-
-            //     // const user_vm = await DBCONNECT(`select instance_id from users_vm where user_id=${id}`);
-            //     // res.status(200).json({ status: 200, message: 'User Details', userDetail: user_detail.rows, userProject: user_project.rows, userEc2: user_ec2.rows, userRds: user_rds.rows, userVm: user_vm.rows });
-            //     res.status(200).json({ status: 200, message: 'User Details', user_detail});
-            // }
-
+      
             else if (action == 'get') {
                 
                 const user_data = await DBCONNECT(`select * from public.user_detail where id=${id}`);
@@ -76,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             else if (action == 'edit') {
 
                 try {
-                    console.log("update_project_id",updated_project_id, id)
+                    // console.log("update_project_id",updated_project_id, id)
                     if (updated_project_id && updated_project_id.length > 0) {
                        const update_project_detail = await DBCONNECT(`SELECT update_user_project(${id}, ARRAY[${updated_project_id}])`);
                      }
@@ -85,18 +74,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     if (ec2Instances && ec2Instances.length >0) {
                         const aws_ec2_string = ec2Instances.map((value: any) => `'${value}'`).join(', ');
                          const update_ec2_detail = await DBCONNECT(`SELECT update_user_ec2(${id}, ARRAY[${aws_ec2_string}])`);
-                        console.log("update_ec2_detail",update_ec2_detail)
+                        
                        
                         }
                         else{const delete_ec2_user= await DBCONNECT(`delete from users_assigned_with_ec2 where user_id=${id}`)}
                   
 
                      if ( rdsIdentifiers && rdsIdentifiers.length >0) {
-                        console.log("rdsIdentifiers..........",rdsIdentifiers, id)
                         const aws_rds_string = rdsIdentifiers.map((value: any) => `'${value}'`).join(', ');
-                       console.log("aws_rds_string",aws_rds_string)
                         const update_rds_detail = await DBCONNECT(`SELECT update_user_rds(${id}, ARRAY[${aws_rds_string}])`);
-                        console.log("update_rds_detail",update_rds_detail)
+
                   
                         }
                         else{
@@ -104,9 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         }
                     if (vmInstances && vmInstances.length >0) {
                         const gcp_vm_string = vmInstances.map((value: any) => `'${value}'`).join(', ');
-                        console.log("gcp_vm_string",gcp_vm_string)
                         const update_vm_detail = await DBCONNECT(`SELECT update_user_vm(${id}, ARRAY[${gcp_vm_string}])`);
-                        console.log("update_vm_detail",update_vm_detail)
                        
                         }
                         else{

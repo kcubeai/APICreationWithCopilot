@@ -265,10 +265,11 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
          // const {edit} = context.query;
         // const id = Array.isArray(edit) ? edit[0] : edit;
         console.log(record.id)
-        const res = await axios.get(process.env.NEXT_PUBLIC_MOCK_PATH+`/api/get-user-list`, {
+        // const res = await axios.get(process.env.NEXT_PUBLIC_MOCK_PATH+`/api/get-user-list`, {
+            const res = await axios.get(`/api/get-user-list`, {
             headers: { 
                'Context-Type': 'application/json',
-               'Authorization': process.env.NEXT_PUBLIC_APP_KEY ,
+               'Authorization': token ,
                // id: edit,
                id: record.id,
        },
@@ -549,7 +550,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
 
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps: GetServerSideProps = async () => {
     var projectList: any = [];
     var ec2List: any = [];
     var rdsList: any = [];
@@ -577,7 +578,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         })
     }
     const data: any = { projectList, ec2List, rdsList, userList, vmList }
-    console.log(data)
+    // console.log(data)
     // Pass data to the page via props
     return { props: { data } }
 }
