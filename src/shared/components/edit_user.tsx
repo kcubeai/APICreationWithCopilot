@@ -19,19 +19,14 @@ import { useRouter } from "next/router";
         issuperadmin:boolean,
         isuser:boolean,
         projectList:Array<{id:number,project_name:string}>
-
-
     }
     export default function editUser({data, onClose}:any){
-        // console.log("data",data.userDetail)
-        // const userData = data.userDetail.userList[0];
+
         const[userDetail,setUserDetail]=useState<any>(data.userDetail.userList[0])
         const [name, setName] = useState<any>(data.userDetail.userList[0].username);
-        console.log("data_name",name)
         const [userProjectAvailable, setUserProjectAvailable] = useState([]);
         // const [userProjectAvailable, setUserProjectAvailable] = useState(data.userDetail.projectAvailable[0]);
         const [userProjectList , setUserProjectList] = useState(data.userDetail.projectList[0]);
-        console.log("data_name_project",userProjectAvailable)
         var radioCheck=[];
         if(data.userDetail.userList[0].isadmin){
             radioCheck.push("admin")
@@ -43,41 +38,25 @@ import { useRouter } from "next/router";
         const [isAdmin, setUserisadmin] = useState<boolean>(data.userDetail.userList[0].isadmin);
         // const [userissuperadmin, setUserissuperadmin] = useState<boolean>(data.userDetail.userList[0].issuperadmin);
         // const[userisuser, setUserisuser] = useState<boolean>(data.userDetail.userList[0].isuser);
-        // console.log("data_name_project_admin",userisadmin)
-        // console.log("data_name_project_user",userisuser)
+     
         const [username, setUsername] = useState("");
         const router = useRouter()
     const [password, setPassword] = useState("");
-    // const [isadmin, setAdmin] = useState(false);
-    // const [form] = useForm();
+   
     const { token, userID } = useAuth()
-    // const router = useRouter()
-    // const [issuperadmin, setIsSuperAdmin] = useState(false);
-    // const [isuser, setIsUser] = useState(false);
+ 
     const [projectList, setProjectList] = useState<{ id: number; project_name: string }[]>([]);
     const[projectAvailable,setProjectAvailable]=useState<{ id: number; project_name: string }[]>([]);
     const [ec2List, setEC2List] = useState<any>(data.entire_list.ec2_instance_list);
     const [rdsList, setRDSList] = useState<any>(data.entire_list.rds_identifiers);
     const [vmList, setVMList] = useState<any>(data.entire_list.vmList);
-    // const [VMList, setVMList] = useState([]); isAdmin
-    // const [showAdd, setShowAdd] = useState<boolean>(false);
-    // const [showEdit, setShowEdit] = useState<boolean>(false);
-    // const [userList, setUserList] = useState(data.userList ? data.userList : [])
-    // const [filterUserList, setFilterList] = useState<any>(userList);
-    // const [projectCheckList, setProjectCheckList] = useState(data.projectList ? data.projectList : []);
-    //    const [ec2CheckList, setEc2CheckList] = useState(data.ec2List ? data.ec2List.filter((item: any) => !item.status.includes("termin")) : []);
-    // const [rdsCheckList, setRDSCheckList] = useState(data.rdsList ? data.rdsList.filter((item: any) => !item.status.includes("delet")) : []);
-    // const [vmCheckList, setVMCheckList] = useState(data.vmList ? data.vmList : [])
-    // const [selectedrds, setSelectedRDS] = useState<any>(data.entire_list.rds_identifiers.filter((topItem: any) => data.project_detail.aws_rds_list.some((existItem: any) => existItem.id == topItem.id)).map((item: any) => item.id))
     const [selectedProject, setSelectedProject] = useState<any>(data.userDetail.projectAvailable.filter((topItem: any) => data.userDetail.projectList.some((existItem: any) => existItem.id == topItem.id)).map((item: any) => item.id))
     // const [selectedec2, setSelectedEc2] = useState<any>(data.entire_list.ec2_instance_list.filter((topItem: any) => data.project_detail.aws_ec2_list.some((existItem: any) => existItem.id == topItem.id)).map((item: any) => item.id))
     const [userec2,setUserec2]=useState<any>(data.entire_list.ec2_instance_list.filter((topItem: any) => data.userDetail.ec2List.some((existItem: any) => existItem.instance_id== topItem.id)).map((item: any) => item.id))
-    // console.log("userec2..........",data.userDetail.ec2List)
-    // console.log("userec2...",data.entire_list.ec2_instance_list)
-    // console.log("userec...",userec2)
+
     const [userrds,setUserrds]=useState<any>(data.entire_list.rds_identifiers.filter((topItem: any) => data.userDetail.rdsList.some((existItem: any) => existItem.identifier_id== topItem.id)).map((item: any) => item.id))
     const [uservm,setUservm]=useState<any>(data.entire_list.vmList.filter((topItem: any) => data.userDetail.vmList.some((existItem: any) => existItem.instance_id== topItem.id)).map((item: any) => item.id))
-    // console.log("selectedProject filter",selectedProject)
+
     const [open, setOpen] = useState(false);
     const showModal = () => {
         setOpen(true);
@@ -103,8 +82,7 @@ import { useRouter } from "next/router";
         }
     }
     );
-    // const { userissuperadmin, userisadmin, userisuser } = watch();
-    // console.log("isuser:", isuser);
+ 
     const [radioValue, setRadioValue] = useState('userisuser'); // Default value set to 'userisuser'
     const fetchedValues = {
       userissuperadmin: data.userDetail.userList[0].issuperadmin,
@@ -124,25 +102,6 @@ import { useRouter } from "next/router";
           }
   
   }, [fetchedValues.userissuperadmin]);
-
-// const handleRadioChange = (e: any) => {
-//     setValue(e.target.name, e.target.value === 'true');
-//   };
-  
-// useEffect(() => {
-//     // Set default values only if they're different from the current form values
-//     if (fetchedValues.userissuperadmin !== getValues('userissuperadmin')) {
-//       setValue('userissuperadmin', fetchedValues.userissuperadmin);
-//     }
-//     if (fetchedValues.userisadmin !== getValues('userisadmin')) {
-//       setValue('userisadmin', fetchedValues.userisadmin);
-//     }
-//     if (fetchedValues.userisuser !== getValues('userisuser')) {
-//       setValue('userisuser', fetchedValues.userisuser);
-//     }
-//   }, [fetchedValues, setValue, getValues]);
-
-
 
 
   const handleRadioChange = (e: any) => {
@@ -165,17 +124,6 @@ import { useRouter } from "next/router";
         
     console.log("isuser:", data.userDetail.userList[0].isuser);
     console.log("isadmin:", data.userDetail.userList[0].isadmin);
-    // const handleUserChange = () => {
-    //     setValue("isuser", true);
-    //     setValue("issuperadmin", false);
-    //     setValue("isadmin", false);
-    // };
-
-    // React.useEffect(() => {
-    //     setValue('issuperadmin', true); 
-    //     setValue('isadmin', false);
-    //     setValue('isuser', false);
-    // }, [setValue]);
 
     const { userissuperadmin, userisadmin, userisuser } = watch();
 
@@ -191,11 +139,10 @@ import { useRouter } from "next/router";
             }
         }, [data.userDetail.projectAvailable]);
 
-    
-    // const { token, userID } = useAuth()
+
     const customHandleSubmit = async (e: any) => {
         handleSubmit((formData, e) => {
-            console.log(formData)
+            // console.log(formData)
 
         })()
     }
@@ -256,8 +203,7 @@ import { useRouter } from "next/router";
         setOpen(false);
     };
     const isDisabled = isAdmin ? !watch("projectList") : !(watch("projectList") || (watch("ec2Instances")?.length || watch("rdsIdentifiers")?.length || watch("vmInstances")?.length));
-      console.log("isDisabled........",isDisabled)
-      console.log("watch........",userisadmin)
+   
         return (
             // data
             <Layout>
@@ -269,19 +215,8 @@ import { useRouter } from "next/router";
             >
                 <p>Are you sure you wan to go back to list?</p>
             </Modal>
-{/* 
-            <Head>
-                <title>COPILOT</title>
-                <meta name="description" content="Generated by create next app" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <link rel="icon" href="/favicon.ico" />
-            </Head>
-            <HeaderComponent title="Users" /> */}
+
             <Content style={{ padding: "50px", display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
-           
-
-             
-
 
                 <div style={{ width: "50%" }}>
                         <div style={{ marginBottom: "20px" }}>
@@ -306,83 +241,87 @@ import { useRouter } from "next/router";
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
                             <label style={{ marginRight: '16px', fontWeight: 'bold' }}>Select Role</label>
                   
-
-
-<Radio.Group
-        value={radioValue}
-        // defaultchecked={radioValue}
-        onChange={handleRadioChange}
-    
-      >
-       
-        <Radio value='userissuperadmin'   {...register('userissuperadmin')} 
-                  onChange={handleRadioChange}  >Super Admin</Radio>
-        <Radio value='userisadmin'   {...register('userisadmin')} 
-                 onChange={handleRadioChange}   >Admin</Radio>
-        <Radio value='userisuser'   {...register('userisuser')} 
-                 onChange={handleRadioChange}   >User</Radio>
-      </Radio.Group>
-
-
+                                <Radio.Group
+                                        value={radioValue}
+                                        // defaultchecked={radioValue}
+                                        onChange={handleRadioChange}
+                                    
+                                    >
+                                    
+                                        <Radio value='userissuperadmin'   {...register('userissuperadmin')} 
+                                                onChange={handleRadioChange} disabled >Super Admin</Radio>
+                                        <Radio value='userisadmin'   {...register('userisadmin')} 
+                                                onChange={handleRadioChange}  disabled >Admin</Radio>
+                                        <Radio value='userisuser'   {...register('userisuser')} 
+                                                onChange={handleRadioChange} disabled  >User</Radio>
+                                    </Radio.Group>
                                       </div>      
 
                         {/* label="Select Project(s)" rules={[{ required: (isuser || isadmin) ? true : false, message: "Please select at least one project" */}
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
                             <label style={{ marginRight: '16px', fontWeight: 'bold' }}>Select Project</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+             
 
-                            <Checkbox.Group defaultValue={getValues("projectList")} onChange={(newValue) => setValue("projectList", newValue)}>
+                            <Checkbox.Group defaultValue={getValues("projectList")} onChange={(newValue) => setValue("projectList", newValue)}    
+                            style={{
+                                        display: "grid",
+                                        gridTemplateColumns: "repeat(3, 1fr)",
+                                        gap: "10px",
+                                    }}>
                                 {userProjectAvailable.map((project: any) => (
                                     <Checkbox key={project.id} value={project.id} {...register("projectList")}>
                                         {project.project_name}
                                     </Checkbox>
                                 ))}
                             </Checkbox.Group>
+                            </div>
 
                                     </div>
 
-{!getValues("userisadmin") && (
-    <>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-            <label style={{ marginRight: '16px', fontWeight: 'bold' }}>EC2 Instances</label>
-            <Checkbox.Group defaultValue={getValues("ec2Instances")} onChange={(newValue) => setValue("ec2Instances", newValue)}>
-                {ec2List.map((ec2: any) => (
-                    <Checkbox key={ec2.id} value={ec2.id}  {...register('ec2Instances')}>
-                        {ec2.name}
-                    </Checkbox>
-                ))}
-            </Checkbox.Group>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-            <label style={{ marginRight: '16px', fontWeight: 'bold' }}>RDS Identifiers</label>
-            <Checkbox.Group defaultValue={getValues("rdsIdentifiers")} onChange={(newValue) => setValue("rdsIdentifiers", newValue)}>
-                {rdsList.map((rds: any) => (
-                    <Checkbox key={rds.id} value={rds.id} {...register("rdsIdentifiers")}>
-                        {rds.name}
-                    </Checkbox>
-                ))}
-            </Checkbox.Group>
-        </div>
+                        {!getValues("userisadmin") && (
+                            <>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                                    <label style={{ marginRight: '16px', fontWeight: 'bold' }}>EC2 Instances</label>
+                                    <Checkbox.Group defaultValue={getValues("ec2Instances")} onChange={(newValue) => setValue("ec2Instances", newValue)}>
+                                        {ec2List.map((ec2: any) => (
+                                            <Checkbox key={ec2.id} value={ec2.id}  {...register('ec2Instances')}>
+                                                {ec2.name}
+                                            </Checkbox>
+                                        ))}
+                                    </Checkbox.Group>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                                    <label style={{ marginRight: '16px', fontWeight: 'bold' }}>RDS Identifiers</label>
+                                    <Checkbox.Group defaultValue={getValues("rdsIdentifiers")} onChange={(newValue) => setValue("rdsIdentifiers", newValue)}>
+                                        {rdsList.map((rds: any) => (
+                                            <Checkbox key={rds.id} value={rds.id} {...register("rdsIdentifiers")}>
+                                                {rds.name}
+                                            </Checkbox>
+                                        ))}
+                                    </Checkbox.Group>
+                                </div>
 
 
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-                            <label style={{ marginRight: '16px', fontWeight: 'bold' }}>VM Instances</label>
-                            <Checkbox.Group defaultValue={getValues("vmInstances")} onChange={(newValue) => setValue("vmInstances", newValue)}>
-                                {vmList.map((rds: any) => (
-                                    <Checkbox key={rds.id} value={rds.id} {...register("vmInstances")}>
-                                        {rds.name}
-                                    </Checkbox>
-                                ))}
-                            </Checkbox.Group>
-                        </div>
-        </>
-)}    
- <Button htmlType="submit" disabled={isDisabled}>
-                            Edit User
-                        </Button>    
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                                                    <label style={{ marginRight: '16px', fontWeight: 'bold' }}>VM Instances</label>
+                                                    <Checkbox.Group defaultValue={getValues("vmInstances")} onChange={(newValue) => setValue("vmInstances", newValue)}>
+                                                        {vmList.map((rds: any) => (
+                                                            <Checkbox key={rds.id} value={rds.id} {...register("vmInstances")}>
+                                                                {rds.name}
+                                                            </Checkbox>
+                                                        ))}
+                                                    </Checkbox.Group>
+                                                </div>
+                                </>
+                        )}    
+                        <Button htmlType="submit" disabled={isDisabled}>
+                                                    Edit User
+                                                </Button>    
 
 
-                                         
-</form>
+                                                                
+                        </form>
 
 
 
@@ -394,11 +333,6 @@ import { useRouter } from "next/router";
 </Layout >
         )
 
-
-
-
-
-      
     }
 
   

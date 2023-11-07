@@ -207,47 +207,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         }
     };
 
-  
-           
-  
-        // const getProjectByID= async (id: any) => {
-        //     try{
-        //         axios.get('/api/get-project-byid', {
-        //             params: {id},
-        //             headers: {
-        //                 // 'Content-Type': 'application/json',
-        //                 'Authorization': `${token}`,
-        //             }
-        //         }).then((response: any) => {
-        //             setProjectList(response.data.project_details);
-        //             // test=response.data.project_details;
-        //             // list=response.data.aws_ec2_list;
-        //             if (response.data.aws_ec2_list && response.data.aws_ec2_list.length > 0) {
-        //                 setCheckboxOptions(response.data.aws_ec2_list);
-        //                 // console.log("checkbox",setCheckboxOptions)
-        //             }
-        //             else if (response.data.aws_rds_list && response.data.aws_rds_list.length > 0) {
-        //                 setCheckboxOptions(response.data.aws_rds_list);
-        //             }
-        //             else if (response.data.vmList && response.data.vmList.length > 0) {
-        //                 setCheckboxOptions(response.data.vmList);
-        //             }
-        //             else {
-                    
-        //             }
-                   
-        //             console.log("selected proj",response.data.project_details);
-        //             console.log("ec2list",response.data.aws_ec2_list);
-        //             console.log("rdslist",response.data.aws_rds_list);
-        //             console.log("vmlist",response.data.vmList);
-        //         })
-        //     } catch (error) {
-        //         console.error(error);
-        //     }
-        // };
 
-
-    
 
     const updateProject = (record: any) => {
         axios.post('/api/add-project', { id: record.id }, { headers: { 'Authorization': token, action: "edit", userID } }).then((response: any) => {
