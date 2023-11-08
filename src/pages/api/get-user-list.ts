@@ -34,11 +34,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
      else {
         const result = await DBCONNECT(`select * from public.user_detail where id=${id}`);
-        const project = await DBCONNECT(`select * from projects`);
+        const project = await DBCONNECT(`select * from projects WHERE isactive=true`);
 
         let query = await DBCONNECT(`SELECT project_id FROM users_assigned_with_projects where user_id=${id}`);
         var project_ids = query.rows.map((item: any) => item.project_id)
-        let user_project = await DBCONNECT(`Select * from projects where id in (${project_ids})`);
+        let user_project = await DBCONNECT(`Select * from projects where id in (${project_ids}) AND isactive=true`);
         // const user_project = await DBCONNECT(`select * from users_assigned_with_projects where user_id=${id}`);
         const user_ec2 = await DBCONNECT(`select * from users_assigned_with_ec2 where user_id=${id}`);
         const user_rds = await DBCONNECT(`select * from users_assigned_with_rds where user_id=${id}`);

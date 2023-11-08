@@ -32,13 +32,13 @@ export default async function handler(req: any, res: any) {
             }
 
         }
-        console.log("id not returned")
+
         if (id == "") {
-            console.log("id not returned")
+           
             if (isSuperAdmin) {
 
                 let query = ``;
-                query = `SELECT * FROM projects`;
+                query = `SELECT * FROM projects WHERE isactive=true`;
 
                 logger.info(` [${req.method} ${req.url} ] Executing query to check user credentials: ${query}`);
                 const result = await DBCONNECT(query);
@@ -118,8 +118,8 @@ export default async function handler(req: any, res: any) {
         //     }
         // }
         else {
-            console.log("id returned")
-            const project_detail = await DBCONNECT(`Select * from projects where id=${id}`)
+            // console.log("id returned")
+            const project_detail = await DBCONNECT(`Select * from projects where id=${id} AND isactive=true`)
             const ec2_list = `select * from ec2_instances where id in (select service_id from service_assigned_with_projects where project_id=${id} and service_type='ec2' and isactive=true)`
             const rds_list = `select * from rds_identifiers where id in (select service_id from service_assigned_with_projects where project_id=${id} and service_type='rds' and isactive=true)`
             const vm_list = `select * from vm_instances where id in (select service_id from service_assigned_with_projects where project_id=${id} and service_type='vm' and isactive=true)`

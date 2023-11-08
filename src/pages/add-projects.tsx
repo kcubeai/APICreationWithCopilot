@@ -1,4 +1,4 @@
-import { Table, Button, Layout, Form, Input, Checkbox, notification, Modal } from 'antd';
+import { Table, Button, Layout, Form, Input, Checkbox, notification, Modal, Spin } from 'antd';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import HeaderComponent from '@/shared/components/header';
@@ -33,6 +33,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
     const [showEdit, setShowEdit] = useState<boolean>(false);
     const [editDetails, setEditDetails] = useState<any>({});
     const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState<boolean>(true);
     const showModal = () => {
         setOpen(true);
     };
@@ -54,6 +55,9 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
             render: (text: string, record: any) => {
                 return <Button type="primary" onClick={() => {
                     editProject(record);
+                    setLoading(true);
+                    setShowList(false);
+                    setShowEdit(true);
                     // router.push(`/edit-project/${record.id}`)
                 }}>Edit</Button>;
             }
@@ -84,8 +88,13 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         })
         const data: any = { project_detail: res.data, entire_list: list.data }
         setEditDetails(data);
-        setShowList(false);
-        setShowEdit(true);
+        setTimeout(() => {
+            setLoading(false);
+            setShowList(false);
+            setShowEdit(true);
+        
+        }, 2000);
+       
     }
 
    
@@ -409,8 +418,17 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                     ) : null}
                     {
                         showEdit ? (<>
+                         {loading ? (
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                                <Spin size="large" />
+                            </div>
+                                 
+                                ) :(
                             <EditProjectsByListingEC2ListandRDSList data={editDetails} onClose={() => { setShowList(true); setShowEdit(false) }} />
-                        </>) : null
+                        
+                            )
+                        }
+                            </>) : null
                     }
                 </>
             </Content>

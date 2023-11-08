@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { Spin } from 'antd';
 import { Button, Checkbox, Form, Input, Layout, Radio, Table, notification,Modal } from "antd";
 const { useForm } = Form;
 const { Header, Content } = Layout;
@@ -56,6 +56,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const [editDetails, setEditDetails] = useState<any>({});
     const [showList, setShowList] = useState<boolean>(true);
     const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState<boolean>(true);
     const showModal = () => {
         setOpen(true);
     };
@@ -106,8 +107,12 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                     return <Button  type="primary" //redirect to the [edit-user].tsx page with the respective user id
                  
                     onClick={() => {
+                        setLoading(true);
+                        setShowList(false);
+                        setShowEdit(true);
                         editUser(record);
-                        // router.push(`/edit-project/${record.id}`)
+                        getProjectList();   
+                    
                     }}>Edit</Button>;
                     // onClick={() => router.push(`/edit_user/${record.id}`)} >Edit</Button>;
     
@@ -260,6 +265,8 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
         }
 
     }
+    console.log("projectList_Add", projectList);
+    console.log("ec2CheckList_Add", ec2CheckList);
 
     const editUser = async (record: any) => {
          // const {edit} = context.query;
@@ -273,9 +280,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                // id: edit,
                id: record.id,
        },
-       // params: {
-       //     id: id,
-       // },
+      
        })
         const list = await axios.get('/api/sync', {
             headers: {
@@ -283,12 +288,58 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                 'Authorization': token,
             }
         })
+
+        const proj = await axios.get('/api/get-project-list', {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token,
+                id: record.id,
+                // isSuperAdmin: record.issuperadmin,
+                // isAdmin: record.isadmin,
+            }
+            
+        })
+
+        var projectList: any = [];
+        var ec2List: any = [];
+        var rdsList: any = [];
+        var userList: any = []
+        var vmList: any = [];
+        await axios.get('/api/get-user-list', { headers: { 'Authorization': token, } }).then((response: any) => {
+            if (response.data.userList && response.data.userList.length > 0) {
+                userList.push(...response.data.userList);
+    
+            }
+    
+        })
+        await axios.get('/api/get-project-list', { headers: {  'Authorization': token, id: '', isSuperAdmin: true } }).then((response: any) => {
+            if (response.data.projectList && response.data.projectList.length > 0) {
+                projectList.push(...response.data.projectList);
+    
+            }
+    
+        })
+        for (const projects of projectList) {
+            await axios.get('/api/get-project-list', { headers: { 'Authorization': token, id: projects.id } }).then((response: any) => {
+                ec2List.push(...response.data.aws_ec2_list)
+                rdsList.push(...response.data.aws_rds_list)
+                vmList.push(...response.data.gcp_vm_list)
+            })
+        }
+        // const data: any = { projectList, ec2List, rdsList, userList, vmList }
+
       // const data: any = { project_detail: res.data, entire_list: list.data }
-      const data: any={userDetail:res.data, entire_list: list.data}
+      const data: any={userDetail:res.data, entire_list: list.data, project_detail: proj.data, projectList, ec2List, rdsList, userList, vmList}
+      console.log("data", data)
       // return { props: { data } };
       setEditDetails(data);
-      setShowList(false);
-      setShowEdit(true);
+      setTimeout(() => {
+        setLoading(false);
+        setShowList(false);
+        setShowEdit(true);
+    
+    }, 2000);
+      
     }
     const handleSubmit = (event: any) => {
         const formValues = form.getFieldsValue()
@@ -538,8 +589,18 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                       ) : null}
                       {
                           showEdit ? (<>
+
+                            {loading ? (
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                                <Spin size="large" />
+                            </div>
+                                 
+                                ) :(
                               <EditUserByListing data={editDetails} onClose={() => { setShowList(true); setShowEdit(false) }} />
-                          </>) : null
+                                )
+                            }
+                                </>) : null
+                                
                       }
                       </>
 

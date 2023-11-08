@@ -1,12 +1,12 @@
 import React from 'react';
 import HeaderComponent from "@/shared/components/header";
 import { useAuth } from "@/shared/utils/auth-context";
-import { Button, Checkbox, Form, Input, Layout,Radio, notification, Modal} from "antd";
+import { Button, Checkbox, Form, Input, Layout,Radio, notification, Modal,Spin} from "antd";
 import axios from "axios";
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 const { Content } = Layout;
 import {useEffect} from "react";
 import { useRouter } from "next/router";
@@ -27,14 +27,14 @@ import { useRouter } from "next/router";
         const [userProjectAvailable, setUserProjectAvailable] = useState([]);
         // const [userProjectAvailable, setUserProjectAvailable] = useState(data.userDetail.projectAvailable[0]);
         const [userProjectList , setUserProjectList] = useState(data.userDetail.projectList[0]);
-        var radioCheck=[];
-        if(data.userDetail.userList[0].isadmin){
-            radioCheck.push("admin")
-        }else if(data.userDetail.userList[0].issuperadmin){
-            radioCheck.push("superadmin")
-        }else if(data.userDetail.userList[0].isuser){
-            radioCheck.push("user")
-        }
+        // var radioCheck=[];
+        // if(data.userDetail.userList[0].isadmin){
+        //     radioCheck.push("admin")
+        // }else if(data.userDetail.userList[0].issuperadmin){
+        //     radioCheck.push("superadmin")
+        // }else if(data.userDetail.userList[0].isuser){
+        //     radioCheck.push("user")
+        // }
         const [isAdmin, setUserisadmin] = useState<boolean>(data.userDetail.userList[0].isadmin);
         // const [userissuperadmin, setUserissuperadmin] = useState<boolean>(data.userDetail.userList[0].issuperadmin);
         // const[userisuser, setUserisuser] = useState<boolean>(data.userDetail.userList[0].isuser);
@@ -45,9 +45,11 @@ import { useRouter } from "next/router";
    
     const { token, userID } = useAuth()
  
-    const [projectList, setProjectList] = useState<{ id: number; project_name: string }[]>([]);
+    // const [projectList, setProjectList] = useState<{ id: number; project_name: string }[]>([]);
+    const [projectList, setProjectList] = useState([]);
     const[projectAvailable,setProjectAvailable]=useState<{ id: number; project_name: string }[]>([]);
-    const [ec2List, setEC2List] = useState<any>(data.entire_list.ec2_instance_list);
+    // const [ec2List, setEC2List] = useState<any>(data.entire_list.ec2_instance_list);
+    const[ec2List,setEC2List]=useState<any>([]);
     const [rdsList, setRDSList] = useState<any>(data.entire_list.rds_identifiers);
     const [vmList, setVMList] = useState<any>(data.entire_list.vmList);
     const [selectedProject, setSelectedProject] = useState<any>(data.userDetail.projectAvailable.filter((topItem: any) => data.userDetail.projectList.some((existItem: any) => existItem.id == topItem.id)).map((item: any) => item.id))
@@ -56,11 +58,32 @@ import { useRouter } from "next/router";
 
     const [userrds,setUserrds]=useState<any>(data.entire_list.rds_identifiers.filter((topItem: any) => data.userDetail.rdsList.some((existItem: any) => existItem.identifier_id== topItem.id)).map((item: any) => item.id))
     const [uservm,setUservm]=useState<any>(data.entire_list.vmList.filter((topItem: any) => data.userDetail.vmList.some((existItem: any) => existItem.instance_id== topItem.id)).map((item: any) => item.id))
-
+   
     const [open, setOpen] = useState(false);
     const showModal = () => {
         setOpen(true);
     };
+
+    const getdistinctValues = (data: any) => {
+        if (Array.isArray(data)) {
+            const distinctObjects = data.reduce((acc: any, obj: any) => {
+                acc[obj.id] = obj;
+                return acc;
+            }, {});
+            const distinctArray = Object.values(distinctObjects);
+            console.log(distinctArray);
+            return distinctArray;
+        } else {
+            return [];
+        }
+    };
+     
+    const [projectCheckList, setProjectCheckList] = useState(data.projectList ? data.projectList : []);
+    const [ec2CheckList, setEc2CheckList] = useState(data.ec2List ? getdistinctValues(data.ec2List) : []);
+    const [rdsCheckList, setRDSCheckList] = useState(data.rdsList ? getdistinctValues(data.rdsList) : []);
+    const [vmCheckList, setVMCheckList] = useState(data.vmList ? getdistinctValues(data.vmList) : []);
+   console.log("ec2CheckList.......",ec2CheckList)
+   console.log("project_chechlist",projectList)
 
     type FetchedValues = {
         userissuperadmin: boolean;
@@ -73,7 +96,7 @@ import { useRouter } from "next/router";
             "userisadmin": data.userDetail.userList[0].isadmin,
             "userissuperadmin": data.userDetail.userList[0].issuperadmin,
             "userisuser": data.userDetail.userList[0].isuser,
-            "role":radioCheck,
+            // "role":radioCheck,
             "projectList": selectedProject,
             "ec2Instances": userec2,
             "rdsIdentifiers": userrds,
@@ -124,6 +147,12 @@ import { useRouter } from "next/router";
         
     console.log("isuser:", data.userDetail.userList[0].isuser);
     console.log("isadmin:", data.userDetail.userList[0].isadmin);
+    console.log("project", userProjectAvailable);
+    console.log("projectList", projectList);
+    const projectId = selectedProject.map((project: any) => project.id);
+    console.log("projectid..", selectedProject);
+    console.log("select", selectedProject);
+    console.log("ec2", ec2List);
 
     const { userissuperadmin, userisadmin, userisuser } = watch();
 
@@ -140,7 +169,30 @@ import { useRouter } from "next/router";
         }, [data.userDetail.projectAvailable]);
 
 
-    const customHandleSubmit = async (e: any) => {
+
+   
+        const handleProjectListChange = (value: any) => {
+            // getProjectList()
+            // setProjectList(value);
+            setValue("projectList", value);
+            setSelectedProject(value);
+        };
+        // const handleEC2ListChange = (setValue: any) => {
+        //     // setEC2List(setValue);
+        //     setValue("ec2Instances", setValue)
+        // };
+        // const handleRDSListChange = (setValue: any) => {
+        //     // setRDSList(setValue);
+        //     setValue("rdsIdentifiers", setValue)
+        // };
+        // const handleVMListChange = (setValue: any) => {
+        //     // setVMList(setValue);
+        //     setValue("rdsIdentifiers", setValue)
+        // };
+   
+   
+   
+        const customHandleSubmit = async (e: any) => {
         handleSubmit((formData, e) => {
             // console.log(formData)
 
@@ -163,6 +215,7 @@ import { useRouter } from "next/router";
         };
        console.log("formValues",formValues)
         try {
+            
             await axios.post('/api/add-user', formValues, { headers: { 'Authorization': token, action: "edit", userID } }).then((response: any) => {
                 if (response.status == 200) {
                     notification.success({
@@ -175,6 +228,41 @@ import { useRouter } from "next/router";
                     onClose();
                 }
             })
+
+//  if (isAdmin) {
+//                 console.log("called")
+//                 axios.get('/api/get-project-list', { headers: { authorization: token, id: '', isAdmin, userID } }).then((response: any) => {
+//                     if (response.data.projectList && response.data.projectList.length > 0) {
+//                         setProjectCheckList(response.data.projectList);
+    
+//                         var ec2List: any = []
+//                         var rdsList: any = []
+//                         var vmList: any = []
+//                         for (const projects of response.data.projectList) {
+//                             axios.get('/api/get-project-list', { headers: { authorization: token, id: projects.id } }).then((response: any) => {
+//                                 ec2List.push(...response.data.aws_ec2_list)
+//                                 rdsList.push(...response.data.aws_rds_list)
+//                                 vmList.push(...response.data.gcp_vm_list)
+
+//                                 // setEc2CheckList(getdistinctValues(ec2List));
+//                                 setRDSCheckList(getdistinctValues(rdsList));
+                            
+//                                 setVMCheckList(getdistinctValues(vmList))
+//                             })
+//                         }
+//                     } else {
+//                         setProjectCheckList([])
+//                         // setEc2CheckList([]);
+//                         setRDSCheckList([]);
+//                         // setVMCheckList(vmList);
+//                         setVMCheckList([])
+//                     }
+    
+//                 })
+//             }
+
+
+         
         } catch (error) {
             notification.error({
                 message: 'Error',
@@ -186,6 +274,10 @@ import { useRouter } from "next/router";
         }
 
     };
+
+    console.log("projectCheckList_edit", projectCheckList);
+    // console.log("ec2CheckList_edit", ec2CheckList);
+    console.log("from_edit_user",projectCheckList)
 
     useEffect(() => {
         if (token == "") {
@@ -222,7 +314,7 @@ import { useRouter } from "next/router";
                         <div style={{ marginBottom: "20px" }}>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h1>Edit User</h1>
+                            <h1>Update User</h1>
                             <Button type="primary" onClick={showModal}>Back to List</Button>
                             {/* <Button type="primary" onClick={() => { router.push('/add-user'); }}>Back to List</Button> */}
                         </div>
@@ -258,7 +350,7 @@ import { useRouter } from "next/router";
                                       </div>      
 
                         {/* label="Select Project(s)" rules={[{ required: (isuser || isadmin) ? true : false, message: "Please select at least one project" */}
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                        {/* <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
                             <label style={{ marginRight: '16px', fontWeight: 'bold' }}>Select Project</label>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
              
@@ -277,14 +369,35 @@ import { useRouter } from "next/router";
                             </Checkbox.Group>
                             </div>
 
+                                    </div> */}
+
+{/* // check on rendering projects vm list */}
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                            <label style={{ marginRight: '16px', fontWeight: 'bold' }}>Select Project</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+             
+
+                    <Checkbox.Group defaultValue={getValues("projectList")} onChange={handleProjectListChange}    
+                            style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)",gap: "10px",}}>
+
+                                    {/* <Checkbox.Group onChange={handleProjectListChange} > */}
+                                        {projectCheckList.map((ec2: any) => (
+                                            <Checkbox key={ec2.id} value={ec2.id}   {...register("projectList", { required: true })}>
+                                                {ec2.project_name}
+                                            </Checkbox>
+                                        ))}
+                                    </Checkbox.Group>
+
+                                    </div>
                                     </div>
 
                         {!getValues("userisadmin") && (
                             <>
-                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                                {/* <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
                                     <label style={{ marginRight: '16px', fontWeight: 'bold' }}>EC2 Instances</label>
                                     <Checkbox.Group defaultValue={getValues("ec2Instances")} onChange={(newValue) => setValue("ec2Instances", newValue)}>
                                         {ec2List.map((ec2: any) => (
+                                            //@ts-ignore
                                             <Checkbox key={ec2.id} value={ec2.id}  {...register('ec2Instances')}>
                                                 {ec2.name}
                                             </Checkbox>
@@ -312,11 +425,68 @@ import { useRouter } from "next/router";
                                                             </Checkbox>
                                                         ))}
                                                     </Checkbox.Group>
+                                                </div> */}
+
+                                                {/* //changes done  */}
+
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                                    <label style={{ marginRight: '16px', fontWeight: 'bold' }}>EC2 Instances</label>
+                                    <Checkbox.Group defaultValue={getValues("ec2Instances")}  onChange={(newValue) => setValue("ec2Instances", newValue)}>
+                                        {ec2CheckList.map((ec2: any) => {
+                                            //@ts-ignore
+                                            if (selectedProject.some(value => ec2.project_ids.includes(value))) {
+                                                return (
+                                                    <Checkbox key={ec2.id} value={ec2.id} checked={getValues("ec2Instances")} {...register('ec2Instances')}>
+                                                        {ec2.name}
+                                                    </Checkbox>
+                                                );
+                                            }
+                                            return null;
+                                        })}
+                                    </Checkbox.Group>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                                    <label style={{ marginRight: '16px', fontWeight: 'bold' }}>RDS Identifiers</label>
+                                    <Checkbox.Group defaultValue={getValues("rdsIdentifiers")} onChange={(newValue) => setValue("rdsIdentifiers", newValue)}>
+                                    {rdsCheckList.map((rds: any) => {
+                                            //@ts-ignore
+                                            if (selectedProject.some(value => rds.project_ids.includes(value))) {
+                                                return (
+
+                                                    <Checkbox key={rds.id} value={rds.id} {...register("rdsIdentifiers")}>
+                                                        {rds.name}
+                                                    </Checkbox>
+                                                );
+                                            }
+                                            return null;
+                                        })}
+                                    </Checkbox.Group>
+                                </div>
+
+                                
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                                                    <label style={{ marginRight: '16px', fontWeight: 'bold' }}>VM Instances</label>
+                                                    <Checkbox.Group defaultValue={getValues("vmInstances")}onChange={(newValue) => setValue("vmInstances", newValue)}>
+                                                    {vmCheckList.map((rds: any) => {
+                                            //@ts-ignore
+                                            if (selectedProject.some(value => rds.project_ids.includes(value))) {
+                                                return (
+
+                                                    <Checkbox key={rds.id} value={rds.id} {...register("vmInstances")}>
+                                                        {rds.name}
+                                                    </Checkbox>
+                                                );
+                                            }
+                                            return null;
+                                        })}
+                                        </Checkbox.Group>
                                                 </div>
+
+                                                
                                 </>
                         )}    
                         <Button htmlType="submit" disabled={isDisabled}>
-                                                    Edit User
+                                                   Update user
                                                 </Button>    
 
 
