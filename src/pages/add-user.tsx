@@ -28,6 +28,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const [userList, setUserList] = useState(data.userList ? data.userList : [])
     const [filterUserList, setFilterList] = useState<any>(userList);
     const [projectCheckList, setProjectCheckList] = useState(data.projectList ? data.projectList : []);
+    console.log("projectCheckList", projectCheckList)
     const [action, setAction] = useState<string>("add");
     // const [ec2CheckList, setEc2CheckList] = useState(data.ec2List ? data.ec2List.filter((item: any) => !item.status.includes("termin")) : []);
     // const [rdsCheckList, setRDSCheckList] = useState(data.rdsList ? data.rdsList.filter((item: any) => !item.status.includes("delet")) : []);
@@ -57,6 +58,9 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const [showList, setShowList] = useState<boolean>(true);
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState<boolean>(true);
+    const [passwordError, setPasswordError] = useState('');
+    const [usernameError, setUsernameError] = useState('');
+    const[project_user,setProject_user]=useState<any>([]);
     const showModal = () => {
         setOpen(true);
     };
@@ -66,6 +70,22 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
 
     const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(event.target.value);
+
+        // const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+
+        if (!passwordRegex.test(password)) {
+            setPasswordError('Password must contain at least 8 characters, including at least one letter and one number.');
+        } else {
+            setPasswordError('');
+        }
+    };
+
+    const handlePasswordBlur = () => {
+        // Notify the user when they move to the next field (on blur)
+        if (passwordError) {
+            console.log('Error: Password is not valid.');
+            // You can show a notification or perform other actions to notify the user
+        }
     };
     const columns = [
         {
@@ -160,6 +180,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
             router.push('/login')
         }
         if (isAdmin) {
+
             handleSearch()
             // getProjectList()
         }
@@ -189,6 +210,14 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
 
         })
     }
+    const handleUsernameBlur = () => {
+        // Check if the username contains whitespace
+        if (/\s/.test(username)) {
+            setUsernameError('Username cannot contain spaces');
+        } else {
+            setUsernameError('');
+        }
+    };
     const handleAdminChange = (event: any) => {
         setAdmin(event.target.checked);
         if (event.target.checked) {
@@ -221,9 +250,28 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const handleVMListChange = (value: any) => {
         setVMList(value);
     };
+
+    const handleReset = () => {
+        const userproj = axios.get(`/api/get-user-list`, {
+            headers: { 
+                'Context-Type': 'application/json',
+                'Authorization': token ,
+                // id: edit,
+                id: userID,
+        },
+
+       
+        })
+    };
+
+
+  
     const handleSearch = () => {
+        fetchProjectsFromDB()
+        // getProjectList();
         const filtered = userList.filter((item: any) => {
             if (item.isuser) {
+               console.log("item",userID)
                 return true
             }
         });
@@ -265,8 +313,8 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
         }
 
     }
-    console.log("projectList_Add", projectList);
-    console.log("ec2CheckList_Add", ec2CheckList);
+
+
 
     const editUser = async (record: any) => {
          // const {edit} = context.query;
@@ -365,7 +413,24 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
             });
         })
     }
-    
+ 
+    interface Project {
+        id: string;
+    }
+
+    const fetchProjectsFromDB = () => {
+        axios.get('/api/get-project-list', { headers: { authorization: token, id: '', isAdmin, userID } }).then((response: any) => {
+            if (response.data.projectList && response.data.projectList.length > 0) {
+                const project_user = response.data.projectList.map((item: Project) => item.id);
+                setProject_user(project_user);
+                console.log("user_proj",project_user)
+            }
+        })
+        console.log("projectforuser_api",project_user)
+        // axios.get('/api/get-project-user', { headers: { authorization: token, project_user} }).then((response: any) => {
+        //     console.log("api called",response.data)
+        // })
+    }
     const getProjectList = () => {
         if (isAdmin) {
             // console.log("called")
@@ -473,22 +538,29 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                                 label="Username"
                                 name="username"
                                 rules={[{ required: true, message: 'Please input your username!' }]}
+                                validateStatus={usernameError ? 'error' : ''}
+                                help={usernameError}
                             >
-                                <Input value={username} onChange={(e) => {
+                                {/* <Input value={username} onChange={(e) => {
                                     if (!/\s/.test(e.target.value)) {
                                         handleUsernameChange(e)
                                     } else {
+                                        
                                         // setError('Username cannot contain spaces');
                                     }
-                                }} />
+                                }}/> */}
+
+                                    <Input value={username} onChange={handleUsernameChange} onBlur={handleUsernameBlur} autoComplete="off" />
                             </Form.Item>
 
                             <Form.Item
                                 label="Password"
                                 name="password"
                                 rules={[{ required: true, message: 'Please input your password!' }]}
+                                validateStatus={passwordError ? 'error' : ''}
+                                help={passwordError}
                             >
-                                <Input.Password value={password} onChange={handlePasswordChange} />
+                                <Input.Password value={password} onChange={handlePasswordChange} onBlur={handlePasswordBlur} autoComplete="off"/>
                             </Form.Item>
                             <h6 style={{ marginBottom: '20px', padding: '5px' }}>Note: Atleast one special character and  one numerical character required</h6>
 
@@ -631,6 +703,8 @@ export const getServerSideProps: GetServerSideProps = async () => {
         }
 
     })
+
+
     for (const projects of projectList) {
         await axios.get(process.env.NEXT_PUBLIC_MOCK_PATH + '/api/get-project-list', { headers: { authorization: process.env.NEXT_PUBLIC_APP_KEY, id: projects.id } }).then((response: any) => {
             ec2List.push(...response.data.aws_ec2_list)

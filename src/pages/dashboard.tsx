@@ -38,11 +38,12 @@ export default function Login() {
             title: 'Instance Name',
             dataIndex: 'name',
             key: 'name',
-        }, {
-            title: 'Project Name',
-            dataIndex: 'project_name',
-            key: 'project_name',
-        },
+        }, 
+        // {
+        //     title: 'Project Name',
+        //     dataIndex: 'project_name',
+        //     key: 'project_name',
+        // },
         // {
         //     title: 'Launch Time',
         //     dataIndex: 'launchTime',
@@ -96,11 +97,12 @@ export default function Login() {
             title: 'Server Name',
             dataIndex: 'name',
             key: 'name',
-        }, {
-            title: 'Project Name',
-            dataIndex: 'project_name',
-            key: 'project_name',
-        },
+        }, 
+        // {
+        //     title: 'Project Name',
+        //     dataIndex: 'project_name',
+        //     key: 'project_name',
+        // },
         // {
         //     title: 'Launch Time',
         //     dataIndex: 'launchTime',
@@ -152,11 +154,12 @@ export default function Login() {
             title: 'Instance Name',
             dataIndex: 'name',
             key: 'name',
-        }, {
-            title: 'Project Name',
-            dataIndex: 'project_name',
-            key: 'project_name',
-        },
+        }, 
+        // {
+        //     title: 'Project Name',
+        //     dataIndex: 'project_name',
+        //     key: 'project_name',
+        // },
         // {
         //     title: 'Launch Time',
         //     dataIndex: 'launchTime',

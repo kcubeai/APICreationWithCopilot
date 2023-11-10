@@ -16,11 +16,14 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
             for (const reservation of ec2Instances.Reservations) {
                 if (reservation.Instances && reservation.Instances.length > 0) {
                     for (const instance of reservation.Instances) {
+                        // console.log('instances', instance)
+                        const nametag = instance.Tags?.find(tag => tag.Key === "Name");
+                        // console.log("instances.......",nametag?.Value);
                         const isavail = await DBCONNECT(`Select * from public.ec2_instances where id='${instance.InstanceId}'`);
                         if (isavail.rows.length == 0) {
                             //@ts-ignore
                             var status = instance.State.Name?.includes('stop') ? true : false;
-                            const insert = await DBCONNECT(`INSERT INTO public.ec2_instances (id, name,  privateIp, public_ip,status, isstopped) VALUES ('${instance.InstanceId}','${instance.KeyName}','${instance.PrivateIpAddress}','${instance.PublicIpAddress}','${instance.State?.Name}',${status})`)
+                            const insert = await DBCONNECT(`INSERT INTO public.ec2_instances (id, name,  privateIp, public_ip,status, isstopped) VALUES ('${instance.InstanceId}','${nametag?.Value}','${instance.PrivateIpAddress}','${instance.PublicIpAddress}','${instance.State?.Name}',${status})`)
                         } else {
                             //@ts-ignore
                             // if (instance.State.Name?.includes('terminated')) {
@@ -30,8 +33,11 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
                             // } else {
                             //@ts-ignore
                             var status = instance.State.Name?.includes('stop') ? true : false;
+                            const nametag = instance.Tags?.find(tag => tag.Key === "Name");
+                            // console.log("instances.update......",nametag?.Value);
                             //@ts-ignore
-                            const insert = await DBCONNECT(`UPDATE public.ec2_instances SET  isstopped=${status}, privateIp='${instance.PrivateIpAddress}', public_ip='${instance.PublicIpAddress}',status='${instance.State.Name}' where id='${instance.InstanceId}'`)
+                            
+                            const insert = await DBCONNECT(`UPDATE public.ec2_instances SET  isstopped=${status}, name='${nametag?.Value}', privateIp='${instance.PrivateIpAddress}', public_ip='${instance.PublicIpAddress}',status='${instance.State.Name}' where id='${instance.InstanceId}'`)
 
                             // }
 
