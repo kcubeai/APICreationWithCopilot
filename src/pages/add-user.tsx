@@ -61,6 +61,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const [passwordError, setPasswordError] = useState('');
     const [usernameError, setUsernameError] = useState('');
     const[project_user,setProject_user]=useState<any>([]);
+    const[userwithproject,setUserwithproject]=useState<any>([]);
     const showModal = () => {
         setOpen(true);
     };
@@ -176,16 +177,30 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
         })
     }
     useEffect(() => {
+        const fetchData = async () => {
         if (token == "") {
             router.push('/login')
         }
         if (isAdmin) {
 
-            handleSearch()
-            // getProjectList()
+           
+            await fetchProjectsFromDB();
+            await getProjectuser();
+            handleSearch() 
+
         }
+        return () => {
+            console.log('Cleanup function is running');
+    
+            // Your cleanup code (e.g., clear intervals, unsubscribe from subscriptions, etc.)
+        };
+    };
+    fetchData(); 
 
     }, [])
+    useEffect(() => {
+        // Code to run on mount
+    }, [project_user]);
 
     const handleSuperAdminChange = (event: any) => {
         setIsSuperAdmin(event.target.checked);
@@ -199,7 +214,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
             form.resetFields(['projectList', 'ec2List', 'rdsList', 'vmList'])
         }
     };
-    const getUserList = async () => {
+    const getUserList = async () => {  
         await axios.get('/api/get-user-list', { headers: { Authorization: token } }).then((response: any) => {
             if (response.data.userList && response.data.userList.length > 0) {
                 setUserList(response.data.userList);
@@ -266,17 +281,33 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
 
 
   
-    const handleSearch = () => {
-        fetchProjectsFromDB()
+    const handleSearch = () => { 
+       
         // getProjectList();
-        const filtered = userList.filter((item: any) => {
-            if (item.isuser) {
-               console.log("item",userID)
-                return true
-            }
-        });
+        // const filtered = userList.filter((item: any) => {
+        //     if (item.isuser && userwithproject.includes(item.id)) {
+        //        console.log("item c",item)
+        //         return true
+        //     }
+        // });
 
-        setFilterList(filtered);
+        // const filtered=userList.filter((item:any)=>item.isuser && userwithproject.includes(item.id));
+            // filter(item => item.isuser && test.includes(item.id))
+            // const commonIds = userList.filter((item: any) => item.isuser);
+            // console.log("filter1",commonIds)
+            // const itemIds = new Set(commonIds.map(({ id }: { id: number }) => id))
+            // const filteredWishlist = userwithproject.filter((id: number) => itemIds.has(id))
+            // const commonIds1 = commonIds.filter((item: any) => userwithproject.includes(item.id));
+            // console.log("filter2",commonIds1)
+            const filtered = userList.filter((item: any) => {
+                if (userwithproject.includes(item.id) && item.isuser) {
+                    console.log("filter c",item)
+                    return true
+                }
+            });
+            setFilterList(filtered);
+        // console.log("filter",filteredWishlist)  
+        // console.log("filter1",userwithproject.includes(item.id))
     };
     const isFormValid = () => {
         if (username.length < 1) return false;
@@ -418,19 +449,77 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
         id: string;
     }
 
-    const fetchProjectsFromDB = () => {
-        axios.get('/api/get-project-list', { headers: { authorization: token, id: '', isAdmin, userID } }).then((response: any) => {
-            if (response.data.projectList && response.data.projectList.length > 0) {
-                const project_user = response.data.projectList.map((item: Project) => item.id);
-                setProject_user(project_user);
-                console.log("user_proj",project_user)
-            }
+    // useEffect(() => {  
+    //     console.log("user_proj_effect", project_user,  userwithproject);
+    //   }, [project_user, userwithproject]);
+    const fetchProjectsFromDB = async () => {
+    // async function fetchProjectsFromDB()  {   
+        try{
+         
+            console.log("user", userID)
+       await axios.get('/api/get-project-list', { headers: { authorization: token, id: '', isAdmin, userID } }).then((response: any) => {
+            // if (response.data.projectList && response.data.projectList.length > 0) {
+            //     const project_user = response.data.projectList.map((item: Project) => item.id);
+            //     setProject_user(project_user);
+            //     console.log("user_proj",project_user)
+            // }
+
+
+            if (response.data && response.data.projectList && Array.isArray(response.data.projectList) && response.data.projectList.length > 0) {
+                const project_user1 = response.data.projectList.map((item: Project) => item.id);
+                setProject_user(project_user1);
+              
+                console.log("user_proj", project_user);
+              } else {
+                console.error('Invalid or empty projectList in the API response:', response.data);
+                // Handle the case where projectList is not as expected
+                // You might set a default value or show an error message, depending on your application logic.
+              }
         })
-        console.log("projectforuser_api",project_user)
-        // axios.get('/api/get-project-user', { headers: { authorization: token, project_user} }).then((response: any) => {
-        //     console.log("api called",response.data)
-        // })
+        
     }
+        catch (error) {
+            console.error('Error fetching data:', error);
+            // Handle the error, e.g., set an error state or show an error message.
+          }
+
+    }
+    console.log("projectforuser_api",project_user)
+
+
+    // async function getProjectuser() {     
+       const getProjectuser = async () => {       
+        console.log("projectforuser_api_get",project_user)
+        try{  
+            // await fetchProjectsFromDB();
+                
+         axios.get('/api/get-project-user', { headers: { authorization: token, 'Content-Type': 'application/json',
+        'project_user': JSON.stringify(project_user)} }).then((response: any) => {
+            console.log("api called",response.data.data)
+
+            if (Array.isArray(response.data.data)) {
+            const user_mapped_project = response.data.data.map((item: any) => item.user_id);
+            console.log("project_user_final",user_mapped_project)
+            setUserwithproject(user_mapped_project);
+            console.log("project_user_final_decalred",userwithproject)
+
+            }
+
+            else {
+                console.error("project_user_final",'response.data is not an array:', response.data.data);
+              }
+        })
+
+    }
+    catch (error) {
+        console.error('Error fetching data:', error);
+        // Handle the error, e.g., set an error state or show an error message.
+      }
+
+    }
+
+
+
     const getProjectList = () => {
         if (isAdmin) {
             // console.log("called")
@@ -689,6 +778,9 @@ export const getServerSideProps: GetServerSideProps = async () => {
     var rdsList: any = [];
     var userList: any = []
     var vmList: any = [];
+    var project_user:any=[];
+    var userwithproject:any=[];
+
     await axios.get(process.env.NEXT_PUBLIC_MOCK_PATH + '/api/get-user-list', { headers: { Authorization: process.env.NEXT_PUBLIC_APP_KEY } }).then((response: any) => {
         if (response.data.userList && response.data.userList.length > 0) {
             userList.push(...response.data.userList);
@@ -703,8 +795,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
         }
 
     })
-
-
+  
     for (const projects of projectList) {
         await axios.get(process.env.NEXT_PUBLIC_MOCK_PATH + '/api/get-project-list', { headers: { authorization: process.env.NEXT_PUBLIC_APP_KEY, id: projects.id } }).then((response: any) => {
             ec2List.push(...response.data.aws_ec2_list)
@@ -712,6 +803,9 @@ export const getServerSideProps: GetServerSideProps = async () => {
             vmList.push(...response.data.gcp_vm_list)
         })
     }
+    
+    // await axios.get(process.env.NEXT_PUBLIC_MOCK_PATH + '/api/get-project-list',{ headers: { authorization: token, id: '', isAdmin, userID } }).then((response: any) => {
+    // }
     const data: any = { projectList, ec2List, rdsList, userList, vmList }
     // console.log(data)
     // Pass data to the page via props
