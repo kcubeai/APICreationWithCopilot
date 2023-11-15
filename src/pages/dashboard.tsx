@@ -39,6 +39,11 @@ export default function Login() {
             dataIndex: 'name',
             key: 'name',
         }, 
+        {
+            title: 'Instance Type',
+            dataIndex: 'type',
+            key: 'type',
+        }, 
         // {
         //     title: 'Project Name',
         //     dataIndex: 'project_name',
@@ -97,6 +102,11 @@ export default function Login() {
             title: 'Server Name',
             dataIndex: 'name',
             key: 'name',
+        }, 
+        {
+            title: 'Type',
+            dataIndex: 'type',
+            key: 'type',
         }, 
         // {
         //     title: 'Project Name',
@@ -394,6 +404,24 @@ export default function Login() {
         });
     }
 
+
+
+// ...
+
+// const Dashboard = () => {
+    // ...
+
+    // useEffect(() => {
+    //     const intervalId = setInterval(() => {
+    //         sync();
+    //     }, 1 * 60 * 1000); // 5 minutes in milliseconds
+
+    //     return () => clearInterval(intervalId);
+    // }, []);
+
+
+// };
+
     return (
         <Layout>
             <Head>
@@ -412,10 +440,10 @@ export default function Login() {
                         <Button type={selectedType === 'EC2' ? 'primary' : 'default'} onClick={() => handleTypeChange('EC2')}>
                             AWS EC2
                         </Button>
-                        <Button type={selectedType === 'RDS' ? 'primary' : 'default'} onClick={() => handleTypeChange('RDS')}>
+                        <Button type={selectedType === 'RDS' ? 'primary' : 'default'} onClick={() => handleTypeChange('RDS')} disabled={dataforRDS && dataforRDS.length <= 0} style={{ display: dataforVM && dataforVM.length <= 0 ? 'none' : 'inline-block' }}>
                             AWS RDS
                         </Button>
-                        <Button type={selectedType === 'VM' ? 'primary' : 'default'} onClick={() => handleTypeChange('VM')}>
+                        <Button type={selectedType === 'VM' ? 'primary' : 'default'} onClick={() => handleTypeChange('VM')} disabled={dataforVM && dataforVM.length <= 0} style={{ display: dataforVM && dataforVM.length <= 0 ? 'none' : 'inline-block' }}>
                             GCP VM
                         </Button>
 
@@ -432,6 +460,9 @@ export default function Login() {
                             {dataforEC2 ? (
                                 <Table dataSource={dataforEC2} columns={columnsforEC2} rowClassName={(record) => {
                                     // Add a custom class to the row if the "Project" column contains an empty string
+                                    if (Object.keys(record).length >1){
+                                    console.log('record..',record)
+                                    }
                                     if (record.project_name === '') {
                                         return 'highlighted-row';
                                     }
@@ -471,10 +502,11 @@ export default function Login() {
                     : null}
                 {selectedType == "VM" ? (<div>
                     <div style={{ marginBottom: '20px' }}>
-                        <h2>RDS Servers</h2>
+                        <h2>VM Servers</h2>
                     </div>
                     <div>
-                        {dataforRDS ? (
+                        {dataforVM ? (
+                            
                             <Table dataSource={dataforVM} columns={columnsforVM} rowClassName={(record) => {
                                 // Add a custom class to the row if the "Project" column contains an empty string
                                 if (record.project_name === '') {

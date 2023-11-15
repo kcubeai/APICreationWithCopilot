@@ -39,7 +39,9 @@ import serviceAccountKey from '../shared/utils/kcube-ai-acae742bd8eb.json';
 
 // }
 export const jwtClient = new google.auth.JWT({
-    email: serviceAccountKey.client_email,
-    key: serviceAccountKey.private_key,
+    // email: serviceAccountKey.client_email,
+    // key: serviceAccountKey.private_key,
+    email: process.env.GCP_CLIENT_EMAIL,
+    key:process.env.GCP_PRIVATE_KEY,
     scopes: ['https://www.googleapis.com/auth/cloud-platform'],
 });

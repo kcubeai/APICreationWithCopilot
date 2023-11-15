@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Spin } from 'antd';
 import { Button, Checkbox, Form, Input, Layout, Radio, Table, notification,Modal } from "antd";
 const { useForm } = Form;
@@ -10,6 +10,7 @@ import HeaderComponent from "@/shared/components/header";
 import axios from "axios";
 import { GetServerSideProps } from "next";
 import EditUserByListing from '@/shared/components/edit_user';
+// import isEqual from 'lodash/isEqual';
 import { set } from "react-hook-form";
 export default function AddUserWithNamePasswordEmail({ data }: any) {
     const [username, setUsername] = useState("");
@@ -28,7 +29,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const [userList, setUserList] = useState(data.userList ? data.userList : [])
     const [filterUserList, setFilterList] = useState<any>(userList);
     const [projectCheckList, setProjectCheckList] = useState(data.projectList ? data.projectList : []);
-    console.log("projectCheckList", projectCheckList)
+  
     const [action, setAction] = useState<string>("add");
     // const [ec2CheckList, setEc2CheckList] = useState(data.ec2List ? data.ec2List.filter((item: any) => !item.status.includes("termin")) : []);
     // const [rdsCheckList, setRDSCheckList] = useState(data.rdsList ? data.rdsList.filter((item: any) => !item.status.includes("delet")) : []);
@@ -45,8 +46,6 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
 
         // Convert the object back to an array
         const distinctArray = Object.values(distinctObjects);
-
-        console.log(distinctArray);
         return distinctArray
     }
     const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
@@ -62,6 +61,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const [usernameError, setUsernameError] = useState('');
     const[project_user,setProject_user]=useState<any>([]);
     const[userwithproject,setUserwithproject]=useState<any>([]);
+    const searchInProgress = useRef(false);
     const showModal = () => {
         setOpen(true);
     };
@@ -176,32 +176,50 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
             });
         })
     }
+    const memoizedProjectUser = useMemo(() => project_user, [project_user]);
     useEffect(() => {
-        const fetchData = async () => {
+     
+        if (project_user.length > 0) {
+            const prevProjectUser = project_user;  
+            getProjectuser();
+
+             if (prevProjectUser !== project_user) {
+                setProject_user(project_user);
+            }
+        }
+    }, [memoizedProjectUser]); 
+
+    // useEffect(() => {
+    //     if (userwithproject.length > 0) {
+    //         setUserwithproject(userwithproject);
+    // }
+    // }, [userwithproject]);
+
+    // useEffect(() => {
+    //     if (userwithproject == "") {
+          
+    //     }
+
+    // }, [userwithproject])
+
+    const memoizedUserWithProject = useMemo(() => userwithproject, [userwithproject]);
+
+    useEffect(() => {
         if (token == "") {
             router.push('/login')
         }
         if (isAdmin) {
-
-           
-            await fetchProjectsFromDB();
-            await getProjectuser();
+ 
             handleSearch() 
-
         }
-        return () => {
-            console.log('Cleanup function is running');
+   
+    }, [memoizedUserWithProject])
+    // useEffect(() => {
+    //     // Code to run on mount
+    // }, [project_user]);
+
+   // Added token as a dependency
     
-            // Your cleanup code (e.g., clear intervals, unsubscribe from subscriptions, etc.)
-        };
-    };
-    fetchData(); 
-
-    }, [])
-    useEffect(() => {
-        // Code to run on mount
-    }, [project_user]);
-
     const handleSuperAdminChange = (event: any) => {
         setIsSuperAdmin(event.target.checked);
         if (event.target.checked) {
@@ -281,27 +299,12 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
 
 
   
-    const handleSearch = () => { 
-       
-        // getProjectList();
-        // const filtered = userList.filter((item: any) => {
-        //     if (item.isuser && userwithproject.includes(item.id)) {
-        //        console.log("item c",item)
-        //         return true
-        //     }
-        // });
+    const handleSearch = async () => {
+       await fetchProjectsFromDB();
 
-        // const filtered=userList.filter((item:any)=>item.isuser && userwithproject.includes(item.id));
-            // filter(item => item.isuser && test.includes(item.id))
-            // const commonIds = userList.filter((item: any) => item.isuser);
-            // console.log("filter1",commonIds)
-            // const itemIds = new Set(commonIds.map(({ id }: { id: number }) => id))
-            // const filteredWishlist = userwithproject.filter((id: number) => itemIds.has(id))
-            // const commonIds1 = commonIds.filter((item: any) => userwithproject.includes(item.id));
-            // console.log("filter2",commonIds1)
             const filtered = userList.filter((item: any) => {
                 if (userwithproject.includes(item.id) && item.isuser) {
-                    console.log("filter c",item)
+                    // console.log("filter c",item)
                     return true
                 }
             });
@@ -309,6 +312,8 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
         // console.log("filter",filteredWishlist)  
         // console.log("filter1",userwithproject.includes(item.id))
     };
+
+
     const isFormValid = () => {
         if (username.length < 1) return false;
         if (password.length < 1) return false;
@@ -350,7 +355,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const editUser = async (record: any) => {
          // const {edit} = context.query;
         // const id = Array.isArray(edit) ? edit[0] : edit;
-        console.log(record.id)
+        // console.log(record.id)
         // const res = await axios.get(process.env.NEXT_PUBLIC_MOCK_PATH+`/api/get-user-list`, {
             const res = await axios.get(`/api/get-user-list`, {
             headers: { 
@@ -409,7 +414,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
 
       // const data: any = { project_detail: res.data, entire_list: list.data }
       const data: any={userDetail:res.data, entire_list: list.data, project_detail: proj.data, projectList, ec2List, rdsList, userList, vmList}
-      console.log("data", data)
+    //   console.log("data", data)
       // return { props: { data } };
       setEditDetails(data);
       setTimeout(() => {
@@ -449,73 +454,66 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
         id: string;
     }
 
-    // useEffect(() => {  
-    //     console.log("user_proj_effect", project_user,  userwithproject);
-    //   }, [project_user, userwithproject]);
     const fetchProjectsFromDB = async () => {
     // async function fetchProjectsFromDB()  {   
         try{
          
-            console.log("user", userID)
+            // console.log("user", userID)
        await axios.get('/api/get-project-list', { headers: { authorization: token, id: '', isAdmin, userID } }).then((response: any) => {
-            // if (response.data.projectList && response.data.projectList.length > 0) {
-            //     const project_user = response.data.projectList.map((item: Project) => item.id);
-            //     setProject_user(project_user);
-            //     console.log("user_proj",project_user)
-            // }
-
-
+       
             if (response.data && response.data.projectList && Array.isArray(response.data.projectList) && response.data.projectList.length > 0) {
-                const project_user1 = response.data.projectList.map((item: Project) => item.id);
+                const project_user1 = response.data.projectList.map((item: any) => item.id);
                 setProject_user(project_user1);
               
                 console.log("user_proj", project_user);
               } else {
+                setProject_user([]);
                 console.error('Invalid or empty projectList in the API response:', response.data);
-                // Handle the case where projectList is not as expected
-                // You might set a default value or show an error message, depending on your application logic.
+    
               }
         })
         
     }
         catch (error) {
             console.error('Error fetching data:', error);
-            // Handle the error, e.g., set an error state or show an error message.
+
           }
 
     }
-    console.log("projectforuser_api",project_user)
+   
 
 
     // async function getProjectuser() {     
        const getProjectuser = async () => {       
-        console.log("projectforuser_api_get",project_user)
+        // console.log("projectforuser_api_get",project_user)
+
+        const project_user_1= project_user
+
         try{  
             // await fetchProjectsFromDB();
                 
          axios.get('/api/get-project-user', { headers: { authorization: token, 'Content-Type': 'application/json',
         'project_user': JSON.stringify(project_user)} }).then((response: any) => {
-            console.log("api called",response.data.data)
+            // console.log("api called",response.data.data)
 
-            if (Array.isArray(response.data.data)) {
+            if (Array.isArray(response.data.data) && response.data.data.length > 0) {
             const user_mapped_project = response.data.data.map((item: any) => item.user_id);
-            console.log("project_user_final",user_mapped_project)
-            setUserwithproject(user_mapped_project);
-            console.log("project_user_final_decalred",userwithproject)
-
+        
+            // setUserwithproject(user_mapped_project);
+            if (user_mapped_project.length !== userwithproject.length) { // Use a deep equality check
+                setUserwithproject(user_mapped_project);
             }
-
+            // console.log("project_user_final_decalred",userwithproject)
+            }
             else {
+                setUserwithproject([]);
                 console.error("project_user_final",'response.data is not an array:', response.data.data);
               }
         })
-
     }
     catch (error) {
         console.error('Error fetching data:', error);
-        // Handle the error, e.g., set an error state or show an error message.
       }
-
     }
 
 
@@ -574,6 +572,8 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
         // setName("");
         // setID("");
     };
+    
+
 
     const handleCancel = () => {
         // console.log('Clicked cancel button');
@@ -778,8 +778,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
     var rdsList: any = [];
     var userList: any = []
     var vmList: any = [];
-    var project_user:any=[];
-    var userwithproject:any=[];
+   
 
     await axios.get(process.env.NEXT_PUBLIC_MOCK_PATH + '/api/get-user-list', { headers: { Authorization: process.env.NEXT_PUBLIC_APP_KEY } }).then((response: any) => {
         if (response.data.userList && response.data.userList.length > 0) {
@@ -804,10 +803,9 @@ export const getServerSideProps: GetServerSideProps = async () => {
         })
     }
     
-    // await axios.get(process.env.NEXT_PUBLIC_MOCK_PATH + '/api/get-project-list',{ headers: { authorization: token, id: '', isAdmin, userID } }).then((response: any) => {
-    // }
+ 
     const data: any = { projectList, ec2List, rdsList, userList, vmList }
-    // console.log(data)
-    // Pass data to the page via props
+ 
     return { props: { data } }
 }
+

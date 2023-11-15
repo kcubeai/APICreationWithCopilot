@@ -59,10 +59,11 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                     instance.project_name = search_query.rows[0].jsonb_agg;
                                     // }
                                     // }
-                                    console.log(instance)
+                                    // console.log(instance)
                                     instanceList.push({
                                         id: instance.id,
                                         name: instance.name,
+                                        type: instance.type,
                                         state: instance.status,
                                         isstopped: instance.isstopped,
                                         publicIp: instance.public_ip,
@@ -96,6 +97,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                                 instanceList.push({
                                                     id: item.id,
                                                     name: item.name,
+                                                    type: item.type,
                                                     state: item.status,
                                                     isstopped: item.isstopped,
                                                     publicIp: item.public_ip,
@@ -130,6 +132,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                             instanceList.push({
                                                 id: item.id,
                                                 name: item.name,
+                                                type: item.type,
                                                 state: item.status,
                                                 isstopped: item.isstopped,
                                                 publicIp: item.public_ip,
@@ -163,7 +166,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                     // if (instance.project_id) {
                                     const search_query = await DBCONNECT(`select JSONB_AGG(project_name) from projects where id in (select project_id from service_assigned_with_projects where service_id='${instance.id}' and isactive=true) and isactive=true`)
                                     const project_ids = await DBCONNECT(`select jsonb_agg(project_id) from service_assigned_with_projects where service_id='${instance.id}' and isactive=true`)
-                                    console.log(search_query.rows)
+                                    // console.log(search_query.rows)
                                     // const search = await DBCONNECT(`Select project_name from projects where id=${instance.project_id}`);
                                     // if (search.rows.length > 0) {
                                     //     instance.project_name = search.rows[0].project_name;
@@ -173,6 +176,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                     instanceList.push({
                                         id: instance.id,
                                         name: instance.name,
+                                        type: instance.type,
                                         state: instance.status,
                                         isstopped: instance.isstopped,
                                         publicIp: instance.public_ip,
@@ -207,6 +211,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                                 instanceList.push({
                                                     id: item.id,
                                                     name: item.name,
+                                                    type: item.type,
                                                     state: item.status,
                                                     isstopped: item.isstopped,
                                                     publicIp: item.public_ip,
@@ -240,6 +245,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                             instanceList.push({
                                                 id: item.id,
                                                 name: item.name,
+                                                type: item.type,
                                                 state: item.status,
                                                 isstopped: item.isstopped,
                                                 publicIp: item.public_ip,
@@ -316,6 +322,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                                 instanceList.push({
                                                     id: item.id,
                                                     name: item.name,
+                                                    type: item.type,
                                                     state: item.status,
                                                     isstopped: item.isstopped,
                                                     publicIp: item.public_ip,
@@ -351,6 +358,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                             instanceList.push({
                                                 id: item.id,
                                                 name: item.name,
+                                                type: item.type,
                                                 state: item.status,
                                                 isstopped: item.isstopped,
                                                 publicIp: item.public_ip,

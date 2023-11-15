@@ -23,7 +23,7 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
                         if (isavail.rows.length == 0) {
                             //@ts-ignore
                             var status = instance.State.Name?.includes('stop') ? true : false;
-                            const insert = await DBCONNECT(`INSERT INTO public.ec2_instances (id, name,  privateIp, public_ip,status, isstopped) VALUES ('${instance.InstanceId}','${nametag?.Value}','${instance.PrivateIpAddress}','${instance.PublicIpAddress}','${instance.State?.Name}',${status})`)
+                            const insert = await DBCONNECT(`INSERT INTO public.ec2_instances (id, name, type,  privateIp, public_ip,status, isstopped) VALUES ('${instance.InstanceId}','${nametag?.Value}','${instance.InstanceType}','${instance.PrivateIpAddress}','${instance.PublicIpAddress}','${instance.State?.Name}',${status})`)
                         } else {
                             //@ts-ignore
                             // if (instance.State.Name?.includes('terminated')) {
@@ -37,7 +37,7 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
                             // console.log("instances.update......",nametag?.Value);
                             //@ts-ignore
                             
-                            const insert = await DBCONNECT(`UPDATE public.ec2_instances SET  isstopped=${status}, name='${nametag?.Value}', privateIp='${instance.PrivateIpAddress}', public_ip='${instance.PublicIpAddress}',status='${instance.State.Name}' where id='${instance.InstanceId}'`)
+                            const insert = await DBCONNECT(`UPDATE public.ec2_instances SET  isstopped=${status}, name='${nametag?.Value}', privateIp='${instance.PrivateIpAddress}', public_ip='${instance.PublicIpAddress}',status='${instance.State.Name}',type='${instance.InstanceType}' where id='${instance.InstanceId}'`)
 
                             // }
 
@@ -56,7 +56,7 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
                 if (isavail.rows.length == 0) {
                     //@ts-ignore
                     var status = instance.DBInstanceStatus?.includes('stop') ? true : false;
-                    const insert = await DBCONNECT(`INSERT INTO public.rds_identifiers (id, name,  privateIp, public_ip,status, isstopped) VALUES ('${instance.DBInstanceIdentifier}','${instance.DBInstanceIdentifier}','${instance.DBInstanceArn}','${instance.Endpoint?.Address}','${instance.DBInstanceStatus}',${status})`)
+                    const insert = await DBCONNECT(`INSERT INTO public.rds_identifiers (id, name,  privateIp, public_ip,status, isstopped, type) VALUES ('${instance.DBInstanceIdentifier}','${instance.DBInstanceIdentifier}','${instance.DBInstanceArn}','${instance.Endpoint?.Address}','${instance.DBInstanceStatus}',${status}, '${instance.DBInstanceClass}')`)
                 } else {
                     // if (instance.DBInstanceStatus?.includes('delet')) {
                     //     //@ts-ignore
@@ -65,7 +65,7 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
                     // } else {
                     //@ts-ignore
                     var status = instance.DBInstanceStatus?.includes('stop') ? true : false;
-                    const insert = await DBCONNECT(`UPDATE public.rds_identifiers SET  isstopped=${status}, privateIp='${instance.DBInstanceArn}', public_ip='${instance.Endpoint?.Address}',status='${instance.DBInstanceStatus}' where id='${instance.DBInstanceIdentifier}'`)
+                    const insert = await DBCONNECT(`UPDATE public.rds_identifiers SET  isstopped=${status}, privateIp='${instance.DBInstanceArn}', public_ip='${instance.Endpoint?.Address}',status='${instance.DBInstanceStatus}',type='${instance.DBInstanceClass}' where id='${instance.DBInstanceIdentifier}'`)
                     // }
                 }
             }
@@ -80,8 +80,10 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
         }
         const vmList: any = await compute.instances.list(headers).then();
         if (vmList.status == 200) {
+            
             if (vmList.data.items?.length > 0) {
                 for (const instance of vmList.data.items) {
+                    // console.log('instance....',instance)
                     const isavail = await DBCONNECT(`Select * from public.vm_instances where id='${instance.id}'`);
                     // console.log(instance.networkInterfaces[0].networkIP)
                     if (isavail.rows.length == 0) {
