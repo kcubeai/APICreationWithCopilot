@@ -30,6 +30,7 @@ export default function EditProjectsByListingEC2ListandRDSList({ data, onClose }
     });
     const { token, userID } = useAuth()
     const [open, setOpen] = useState(false);
+    const [hasChanges, setHasChanges] = useState(false);
     const showModal = () => {
         setOpen(true);
     };
@@ -47,6 +48,15 @@ export default function EditProjectsByListingEC2ListandRDSList({ data, onClose }
             rdsIdentifiers: formdata.rdsIdentifiers,
             vmInstances: formdata.vmInstances
         };
+
+        if (formdata.ec2Instances.length > 0 || formdata.rdsIdentifiers.length > 0 || formdata.vmInstances.length > 0) {
+            clearErrors('instance');
+            // return true;
+        } else {
+            setError("instance", {type: "manual", message: "Please select at least one instance", });
+            return false;
+        }
+        
         try {
             await axios.post('/api/add-project', formValues, { headers: { 'Authorization': token, action: "edit", userID } }).then((response: any) => {
                 if (response.status == 200) {
@@ -130,7 +140,7 @@ export default function EditProjectsByListingEC2ListandRDSList({ data, onClose }
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
                             <label style={{ marginRight: '16px', fontWeight: 'bold' }}>EC2 Instances</label>
-                            <Checkbox.Group defaultValue={getValues("ec2Instances")} onChange={(newValue) => setValue("ec2Instances", newValue)}>
+                            <Checkbox.Group defaultValue={getValues("ec2Instances")} onChange={(newValue) => {setValue("ec2Instances", newValue); setHasChanges(true); if (newValue.length > 0) { clearErrors('instance');}}}>
                                 {ec2List.map((ec2: any) => (
                                     <Checkbox key={ec2.id} value={ec2.id}  {...register('ec2Instances')} // Register the Checkbox with the group
                                     >
@@ -142,7 +152,7 @@ export default function EditProjectsByListingEC2ListandRDSList({ data, onClose }
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
                             <label style={{ marginRight: '16px', fontWeight: 'bold' }}>RDS Identifiers</label>
-                            <Checkbox.Group defaultValue={getValues("rdsIdentifiers")} onChange={(newValue) => setValue("rdsIdentifiers", newValue)}>
+                            <Checkbox.Group defaultValue={getValues("rdsIdentifiers")} onChange={(newValue) => {setValue("rdsIdentifiers", newValue);setHasChanges(true); if (newValue.length > 0) { clearErrors('instance'); }}}>
                                 {rdsList.map((rds: any) => (
                                     <Checkbox key={rds.id} value={rds.id} {...register("rdsIdentifiers")}>
                                         {rds.name}
@@ -152,7 +162,7 @@ export default function EditProjectsByListingEC2ListandRDSList({ data, onClose }
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
                             <label style={{ marginRight: '16px', fontWeight: 'bold' }}>VM Instances</label>
-                            <Checkbox.Group defaultValue={getValues("vmInstances")} onChange={(newValue) => setValue("vmInstances", newValue)}>
+                            <Checkbox.Group defaultValue={getValues("vmInstances")} onChange={(newValue) => {setValue("vmInstances", newValue);setHasChanges(true); if (newValue.length > 0) { clearErrors('instance'); }}}>
                                 {vmList.map((rds: any) => (
                                     <Checkbox key={rds.id} value={rds.id} {...register("vmInstances")}>
                                         {rds.name}
@@ -160,6 +170,11 @@ export default function EditProjectsByListingEC2ListandRDSList({ data, onClose }
                                 ))}
                             </Checkbox.Group>
                         </div>
+
+                        {errors.instance && typeof errors.instance.message === 'string' && <div style={{ color: 'red' }}>
+                                            {errors.instance.message}
+                                            </div>}
+
                         <Button htmlType="submit" disabled={!watch("projectName") || !(watch("ec2Instances")?.length || watch("rdsIdentifiers")?.length || watch("vmInstances")?.length)}>
                             Update
                         </Button>

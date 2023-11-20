@@ -13,6 +13,7 @@ import EditUserByListing from '@/shared/components/edit_user';
 // import isEqual from 'lodash/isEqual';
 import { set } from "react-hook-form";
 export default function AddUserWithNamePasswordEmail({ data }: any) {
+    const [loading, setLoading] = useState<boolean>(true);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isadmin, setAdmin] = useState(false);
@@ -48,6 +49,8 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
         const distinctArray = Object.values(distinctObjects);
         return distinctArray
     }
+   
+
     const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
     const [ec2CheckList, setEc2CheckList] = useState(data.ec2List ? getdistinctValues(data.ec2List) : []);
     const [rdsCheckList, setRDSCheckList] = useState(data.rdsList ? getdistinctValues(data.rdsList) : []);
@@ -56,12 +59,32 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const [editDetails, setEditDetails] = useState<any>({});
     const [showList, setShowList] = useState<boolean>(true);
     const [open, setOpen] = useState(false);
-    const [loading, setLoading] = useState<boolean>(true);
+    
     const [passwordError, setPasswordError] = useState('');
     const [usernameError, setUsernameError] = useState('');
     const[project_user,setProject_user]=useState<any>([]);
     const[userwithproject,setUserwithproject]=useState<any>([]);
     const searchInProgress = useRef(false);
+    // setLoading(true);
+    // useEffect(() => {
+        
+    //     setLoading(false);
+    // }, [data]);
+
+    useEffect(() => {
+        if (data !== null) {
+          setLoading(true)
+          if (data !== undefined) {
+    
+            if (data.length > 0) {
+                setLoading(false)
+            }
+          }
+        //   data = undefined
+        
+          setTimeout(() => { setLoading(false) }, 1000)
+        }
+    }, [data])
     const showModal = () => {
         setOpen(true);
     };
@@ -655,7 +678,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
 
                             <Form.Item name="role" label="Select Role" rules={[{ required: true, message: "Please select a role" }]}>
                                 <Radio.Group>
-                                    {isSuperAdmin ? <Radio value="issuperadmin" onChange={handleSuperAdminChange}>Is Super Admin</Radio> : null}
+                                    {/* {isSuperAdmin ? <Radio value="issuperadmin" onChange={handleSuperAdminChange}>Is Super Admin</Radio> : null} */}
                                     {isSuperAdmin ? <Radio value="isadmin" onChange={handleAdminChange}>Is Admin</Radio> : null}
 
                                     <Radio value="isuser" onChange={handleUserChange}>Is User</Radio>
@@ -737,7 +760,14 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                         </Form>
                     </div> 
                      ) : null}
-                     {showList ? (
+                    {showList ? (<>
+
+                            {loading ? (
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                                <Spin size="large" />
+                            </div>
+                                
+                             ) :(
                     <div style={{ width: "100%" }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <h2>User List</h2>
@@ -747,7 +777,10 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                         </div>
                         <Table columns={columns} dataSource={filterUserList} style={{ marginTop: '20px' }} />
                     </div>
-                      ) : null}
+                             )
+                       
+                    }
+                      </>) : null}
                       {
                           showEdit ? (<>
 
@@ -804,7 +837,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
     }
     
  
-    const data: any = { projectList, ec2List, rdsList, userList, vmList }
+    const data: any = { projectList, ec2List, rdsList, userList, vmList };
  
     return { props: { data } }
 }

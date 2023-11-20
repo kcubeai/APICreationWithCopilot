@@ -78,28 +78,30 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
             zone: 'us-west1-b', // Replace with your desired zone
             access_token: token?.access_token
         }
-        const vmList: any = await compute.instances.list(headers).then();
-        if (vmList.status == 200) {
-            
-            if (vmList.data.items?.length > 0) {
-                for (const instance of vmList.data.items) {
-                    // console.log('instance....',instance)
-                    const isavail = await DBCONNECT(`Select * from public.vm_instances where id='${instance.id}'`);
-                    // console.log(instance.networkInterfaces[0].networkIP)
-                    if (isavail.rows.length == 0) {
-                        //@ts-ignore
-                        var status = instance.status?.includes('RUNNING') ? false : true;
-                        const insert = await DBCONNECT(`INSERT INTO public.vm_instances (id, name,  privateIp, status, isstopped) VALUES ('${instance.id}','${instance.name}','${instance.networkInterfaces[0].networkIP}','${instance.status}',${status})`)
-                    } else {
-                        //@ts-ignore
-                        var status = instance.status?.includes('RUNNING') ? false : true;
-                        const insert = await DBCONNECT(`UPDATE public.vm_instances SET isstopped=${status}, privateIp='${instance.networkInterfaces[0].networkIP}',status='${instance.status}' where id='${instance.id}'`)
 
-                    }
-                }
-            }
-        }
-        const vm_instance_list: any = await DBCONNECT(`Select * from vm_instances`)
+        // to add vm list uncomment below and line 127
+        // const vmList: any = await compute.instances.list(headers).then();
+        // if (vmList.status == 200) {
+            
+        //     if (vmList.data.items?.length > 0) {
+        //         for (const instance of vmList.data.items) {
+        //             // console.log('instance....',instance)
+        //             const isavail = await DBCONNECT(`Select * from public.vm_instances where id='${instance.id}'`);
+        //             // console.log(instance.networkInterfaces[0].networkIP)
+        //             if (isavail.rows.length == 0) {
+        //                 //@ts-ignore
+        //                 var status = instance.status?.includes('RUNNING') ? false : true;
+        //                 const insert = await DBCONNECT(`INSERT INTO public.vm_instances (id, name,  privateIp, status, isstopped) VALUES ('${instance.id}','${instance.name}','${instance.networkInterfaces[0].networkIP}','${instance.status}',${status})`)
+        //             } else {
+        //                 //@ts-ignore
+        //                 var status = instance.status?.includes('RUNNING') ? false : true;
+        //                 const insert = await DBCONNECT(`UPDATE public.vm_instances SET isstopped=${status}, privateIp='${instance.networkInterfaces[0].networkIP}',status='${instance.status}' where id='${instance.id}'`)
+
+        //             }
+        //         }
+        //     }
+        // }
+        // const vm_instance_list: any = await DBCONNECT(`Select * from vm_instances`)
         // const sqlList:any = await sqladmin.instances.list(headers).then();
         // if (sqlList.status == 200) {
         //     if (sqlList.data.items?.length > 0) {
@@ -121,7 +123,9 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
         // }
         //@ts-ignore
         // , sqlList: sqlList.status == 200 ? sqlList.data.items : [] 
-        response.status(200).json({ message: 'Sync successfully', instances: ec2Instances.Reservations[0].Instances, rds: rdsInstances.DBInstances, rds_identifiers: rdsidentifierList.rows, ec2_instance_list: ec2instancesList.rows, vmList: vm_instance_list.rows })
+        response.status(200).json({ message: 'Sync successfully', instances: ec2Instances.Reservations[0].Instances, rds: rdsInstances.DBInstances, rds_identifiers: rdsidentifierList.rows, ec2_instance_list: ec2instancesList.rows, 
+        // vmList: vm_instance_list.rows 
+    })
 
     }
     catch (error) {

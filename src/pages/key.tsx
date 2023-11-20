@@ -1,33 +1,55 @@
 // pages/update-username.js
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import {  Layout, Button, notification, Input } from 'antd';
 const { Content } = Layout;
 import Head from 'next/head';
 import HeaderComponent from '@/shared/components/header';
 import { useAuth } from '@/shared/utils/auth-context';
+import { networkInterfaces } from 'os';
+import router from 'next/router';
 
 
 
 
 export default function UpdateCredentials() {
-  const { token, setToken, isAdmin, isSuperAdmin, isUser, userID } = useAuth();
-  const [newUsername, setNewUsername] = useState('');
-  const [newUsernamekey, setNewUsernamekey] = useState('');
-  const [newToken, setNewToken] = useState('');
-  const [showUsernameInput, setShowUsernameInput] = useState(false);
-    const [showTokenInput, setShowTokenInput] = useState(false);
+  const { token,updateToken, setToken, isAdmin, isSuperAdmin, isUser, userID } = useAuth();
+  const [awsaccessid, setAwsaccessid] = useState('');
+  const [awskey, setAwskey] = useState('');
+  const [gcpkey, setGcpkey] = useState('');
+  const [showAws, setShowAws] = useState(false);
+    const [showGcp, setShowGcp] = useState(false);
+    const [error, setError] = useState('');
+    
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewUsername(e.target.value);
+    setAwsaccessid(e.target.value);
+    setError('');
   };
  const handleUsernameChangekey = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewUsernamekey(e.target.value);
+    setAwskey(e.target.value);
+    setError('');
   };
   const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewToken(e.target.value);
+    setGcpkey(e.target.value);
+    setError('');
   };
 
-const handleUpdateUsername = async () => {
+  useEffect(() => {
+    if (token == "") {
+        router.push('/login')
+    }
+})
+
+const handleUpdateAws = async () => {
+
+  if (!awsaccessid.trim()) {
+    setError('AWS Access Id cannot be empty');
+    return;
+  }
+  if (!awskey.trim()) {
+      setError('AWS Key cannot be empty');
+      return;
+    }
     try {
         const response = await fetch('/api/update_config', {
             method: 'POST',
@@ -35,7 +57,7 @@ const handleUpdateUsername = async () => {
                     'authorization': `${token}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ newUsername, newUsernamekey }),
+            body: JSON.stringify({ awsaccessid, awskey, userID }),
         });
 
         const data = await response.json();
@@ -68,7 +90,12 @@ const handleUpdateUsername = async () => {
     // }
 };
 
-  const handleUpdateToken = async () => {
+  const handleUpdateGcp = async () => {
+
+    if (!gcpkey.trim()) {
+      setError('GCP Private key cannot be empty');
+      return;
+    }
     try {
       const response = await fetch('/api/update_config', {
         method: 'POST',
@@ -76,7 +103,7 @@ const handleUpdateUsername = async () => {
            'authorization': `${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ newToken }),
+        body: JSON.stringify({gcpkey }),
       });
 
       const data = await response.json();
@@ -101,7 +128,7 @@ const handleUpdateUsername = async () => {
              <meta name="viewport" content="width=device-width, initial-scale=1" />
              <link rel="icon" href="/favicon.ico" />
          </Head>
-       <HeaderComponent title="Dashboard" />
+       <HeaderComponent title="Edit configuration" />
          <Content style={{ padding: '50px' }}>
     {/* <div>
       <h1>Update Credentials</h1>
@@ -130,44 +157,55 @@ const handleUpdateUsername = async () => {
                         <h1>Server Credentials</h1>
 
                         <div>
-                        <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => {setShowUsernameInput(true); setShowTokenInput(false)}}>AWS</Button>
-                        <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => {setShowUsernameInput(false);setShowTokenInput(true)}}>GCP</Button>
+                        <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => {setShowAws(true); setShowGcp(false)}}>AWS</Button>
+                        <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => {setShowAws(false);setShowGcp(true)}}>GCP</Button>
                        
                         </div>
                         <div>
-                             {showUsernameInput && (
+                             {showAws && (
                             <>
                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px',marginTop:'20px' }}>
                                 <label style={{ marginRight: '16px', fontWeight: 'bold' }}>
                                     AWS Access ID:
-                                    <Input type="text" value={newUsername} onChange={handleUsernameChange} />
+                                    <Input type="text" value={awsaccessid} onChange={handleUsernameChange} />
                                 </label>
                             </div>
 
                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px',marginTop:'20px' }}>
                                 <label style={{ marginRight: '16px', fontWeight: 'bold' }}>
                                     AWS Access Key:
-                                    <Input type="text" value={newUsernamekey} onChange={handleUsernameChangekey} />
+                                    <Input type="text" value={awskey} onChange={handleUsernameChangekey} />
                                 </label>
+                            </div>
+                            <div>
+
+                            {error && <p style={{ color: 'red' }}>{error}</p>}
                             </div>
 
                             <div style={{ marginTop: '20px' }}>
-                                <Button type='primary' onClick={handleUpdateUsername}>
-                                    Update Username
+                                <Button type='primary' onClick={handleUpdateAws}>
+                                    Update
                                 </Button>
                             </div>
                             </>
                         )}
-                        {showTokenInput && (
+                        {showGcp && (
                             <>
-                                <label>
-                                    New Token:
-                                    <input type="text" value={newToken} onChange={handleTokenChange} />
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px',marginTop:'20px' }}>
+                                <label style={{ marginRight: '16px', fontWeight: 'bold' }}>
+                                    GCP Private Key:
+                                    <Input type="text" value={gcpkey} onChange={handleTokenChange} />
                                 </label>
-                                <br />
-                                <button type="button" onClick={handleUpdateToken}>
-                                    Update Token
-                                </button>
+                            </div>
+
+                            <div>
+
+                                {error && <p style={{ color: 'red' }}>{error}</p>}
+                                </div>
+
+                                <Button type='primary' onClick={handleUpdateGcp}>
+                                    Update
+                                </Button>
                             </>
                         )}
                         </div>
