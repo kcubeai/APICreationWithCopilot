@@ -12,7 +12,11 @@ export default function HeaderComponent(props: any) {
         // setIsGCP(false)
         // setIsRDS(false)
         // setIsAdmin(false)
-        sessionStorage.removeItem('token')
+        // sessionStorage.removeItem('token')
+        localStorage.removeItem('token')
+        localStorage.removeItem('isAdmin')
+        localStorage.removeItem('isSuperAdmin')
+        localStorage.removeItem('userID')
         setToken("")
         router.push('/login');
     }

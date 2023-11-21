@@ -9,6 +9,7 @@ const sqladmin = google.sqladmin('v1beta4')
 export default async function getRDSInstanceListandSaveitinDB(request: NextApiRequest, response: NextApiResponse) {
     try {
         const ec2Instances = await utils.ec2.describeInstances().promise();
+          console.log('testtttttttt',utils)     
         // const terminatedinstances = await utils.ec2.describeInstances({ Filters: [{ Name: 'instance-state-name', Values: ['terminated'] }] }).promise();
         // console.log(terminatedinstances, ec2Instances)
         if (ec2Instances && ec2Instances.Reservations && ec2Instances.Reservations.length > 0) {

@@ -18,13 +18,13 @@ export default function EditProjectsByListingEC2ListandRDSList({ data, onClose }
     const [vmList, setVMList] = useState<any>(data.entire_list.vmList);
     const [selectedec2, setSelectedEc2] = useState<any>(data.entire_list.ec2_instance_list.filter((topItem: any) => data.project_detail.aws_ec2_list.some((existItem: any) => existItem.id == topItem.id)).map((item: any) => item.id))
     const [selectedrds, setSelectedRDS] = useState<any>(data.entire_list.rds_identifiers.filter((topItem: any) => data.project_detail.aws_rds_list.some((existItem: any) => existItem.id == topItem.id)).map((item: any) => item.id))
-    const [selectedvm, setSelectedVM] = useState<any>(data.entire_list.vmList.filter((topItem: any) => data.project_detail.gcp_vm_list.some((existItem: any) => existItem.id == topItem.id)).map((item: any) => item.id))
+    // const [selectedvm, setSelectedVM] = useState<any>(data.entire_list.vmList.filter((topItem: any) => data.project_detail.gcp_vm_list.some((existItem: any) => existItem.id == topItem.id)).map((item: any) => item.id))
     const { register, handleSubmit, setError, clearErrors, formState: { errors }, control, setValue, getValues, watch } = useForm<any>({
         defaultValues: {
             "projectName": data.project_detail.project_details.project_name,
             "ec2Instances": selectedec2,
             "rdsIdentifiers": selectedrds,
-            "vmInstances": selectedvm
+            // "vmInstances": selectedvm
             // "ec2Instances": data.entire_list.ec2_instance_list.filter((topItem: any) => data.project_detail.aws_ec2_list.some((existItem: any) => existItem.id == topItem.id)).map((item: any) => item.id)
         }
     });
@@ -32,7 +32,12 @@ export default function EditProjectsByListingEC2ListandRDSList({ data, onClose }
     const [open, setOpen] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
     const showModal = () => {
+        if (hasChanges === true) {
         setOpen(true);
+        }
+        else{
+            onClose();
+        }
     };
     const customHandleSubmit = async (e: any) => {
         handleSubmit((formData, e) => {
@@ -49,7 +54,9 @@ export default function EditProjectsByListingEC2ListandRDSList({ data, onClose }
             vmInstances: formdata.vmInstances
         };
 
-        if (formdata.ec2Instances.length > 0 || formdata.rdsIdentifiers.length > 0 || formdata.vmInstances.length > 0) {
+        if (formdata.ec2Instances.length > 0 || formdata.rdsIdentifiers.length > 0 
+            // || formdata.vmInstances.length > 0
+            ) {
             clearErrors('instance');
             // return true;
         } else {
@@ -160,7 +167,7 @@ export default function EditProjectsByListingEC2ListandRDSList({ data, onClose }
                                 ))}
                             </Checkbox.Group>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                        {/* <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
                             <label style={{ marginRight: '16px', fontWeight: 'bold' }}>VM Instances</label>
                             <Checkbox.Group defaultValue={getValues("vmInstances")} onChange={(newValue) => {setValue("vmInstances", newValue);setHasChanges(true); if (newValue.length > 0) { clearErrors('instance'); }}}>
                                 {vmList.map((rds: any) => (
@@ -169,13 +176,15 @@ export default function EditProjectsByListingEC2ListandRDSList({ data, onClose }
                                     </Checkbox>
                                 ))}
                             </Checkbox.Group>
-                        </div>
+                        </div> */}
 
                         {errors.instance && typeof errors.instance.message === 'string' && <div style={{ color: 'red' }}>
                                             {errors.instance.message}
                                             </div>}
 
-                        <Button htmlType="submit" disabled={!watch("projectName") || !(watch("ec2Instances")?.length || watch("rdsIdentifiers")?.length || watch("vmInstances")?.length)}>
+                        <Button htmlType="submit" 
+                        // disabled={!watch("projectName") || !(watch("ec2Instances")?.length || watch("rdsIdentifiers")?.length || watch("vmInstances")?.length)}
+                        >
                             Update
                         </Button>
                     </form>

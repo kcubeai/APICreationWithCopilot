@@ -34,6 +34,21 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
     const [editDetails, setEditDetails] = useState<any>({});
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState<boolean>(true);
+   
+    useEffect(() => {
+        if (data !== null) {
+          setLoading(true)
+          if (data !== undefined) {
+    
+            if (data.length > 0) {
+                setLoading(false)
+            }
+          }
+        //   data = undefined
+        
+          setTimeout(() => { setLoading(false) }, 1000)
+        }
+    }, [data])
     const showModal = () => {
         setOpen(true);
     };
@@ -405,7 +420,13 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                             </Form>
                         </div>
                     ) : null}
-                    {showList ? (
+                    {showList ? (<>
+                        {loading ? (
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                            <Spin size="large" />
+                        </div>
+                            
+                         ) :(
                         <div style={{ width: "100%" }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <h2>Projects List</h2>
@@ -415,7 +436,10 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                             </div>
                             <Table columns={columns} dataSource={projects} style={{ marginTop: '20px' }} />
                         </div>
-                    ) : null}
+                  )
+                       
+                }
+                  </>) : null}
                     {
                         showEdit ? (<>
                          {loading ? (

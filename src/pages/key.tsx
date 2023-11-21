@@ -12,7 +12,7 @@ import router from 'next/router';
 
 
 export default function UpdateCredentials() {
-  const { token,updateToken, setToken, isAdmin, isSuperAdmin, isUser, userID } = useAuth();
+  const { token, setToken, isAdmin, isSuperAdmin, isUser, userID } = useAuth();
   const [awsaccessid, setAwsaccessid] = useState('');
   const [awskey, setAwskey] = useState('');
   const [gcpkey, setGcpkey] = useState('');
@@ -61,33 +61,39 @@ const handleUpdateAws = async () => {
         });
 
         const data = await response.json();
+        // if (data.success) {
+        //     alert(data.message);
+        //   } else {
+        //     alert('Error updating token. Please try again.');
+        //   }
+        // } catch (error) {
+        //   console.error('Error updating token:', error);
+        //   alert('Error updating token. Please try again.');
+        // }
         if (data.success) {
-            alert(data.message);
-          } else {
-            alert('Error updating token. Please try again.');
-          }
-        } catch (error) {
-          console.error('Error updating token:', error);
-          alert('Error updating token. Please try again.');
+           
+
+            setTimeout(() => {
+              notification.success({
+                message: 'Success',
+                description: data.message,
+              });
+
+              // router.push('/dashboard');
+            }, 1200);
+        } else {
+            notification.error({
+                message: 'Error',
+                description: 'Error updating username. Please try again.',
+            });
         }
-    //     if (data.success) {
-    //         notification.success({
-    //             message: 'Success',
-    //             description: data.message,
-    //         });
-    //     } else {
-    //         notification.error({
-    //             message: 'Error',
-    //             description: 'Error updating username. Please try again.',
-    //         });
-    //     }
-    // } catch (error) {
-    //     console.error('Error updating username:', error);
-    //     notification.error({
-    //         message: 'Error',
-    //         description: 'Error updating username. Please try again.',
-    //     });
-    // }
+    } catch (error) {
+        console.error('Error updating username:', error);
+        notification.error({
+            message: 'Error',
+            description: 'Error updating username. Please try again.',
+        });
+    }
 };
 
   const handleUpdateGcp = async () => {
@@ -128,7 +134,7 @@ const handleUpdateAws = async () => {
              <meta name="viewport" content="width=device-width, initial-scale=1" />
              <link rel="icon" href="/favicon.ico" />
          </Head>
-       <HeaderComponent title="Edit configuration" />
+       <HeaderComponent title="Access key" />
          <Content style={{ padding: '50px' }}>
     {/* <div>
       <h1>Update Credentials</h1>
@@ -154,11 +160,11 @@ const handleUpdateAws = async () => {
     </div> */}
 
 <div>
-                        <h1>Server Credentials</h1>
+                        <h1>Access key update</h1>
 
                         <div>
                         <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => {setShowAws(true); setShowGcp(false)}}>AWS</Button>
-                        <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => {setShowAws(false);setShowGcp(true)}}>GCP</Button>
+                        {/* <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => {setShowAws(false);setShowGcp(true)}}>GCP</Button> */}
                        
                         </div>
                         <div>

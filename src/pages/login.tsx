@@ -36,7 +36,11 @@ export default function Login() {
                 setToken(response.data.token);
                 setUserId(response.data.id)
 
-                sessionStorage.setItem('token', response.data.token);
+                // sessionStorage.setItem('token', response.data.token);
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('isAdmin', response.data.isAdmin);
+                localStorage.setItem('isSuperAdmin', response.data.isSuperAdmin);
+                localStorage.setItem('userID', response.data.id);
                 router.push('/dashboard');
             }
         } catch (error) {

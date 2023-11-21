@@ -2,8 +2,6 @@ import React, { useState, createContext, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 
-
-
 interface AuthContextInterface {
     token: string,
     updateToken: Function,
@@ -18,8 +16,6 @@ interface AuthContextInterface {
     currentPage: string,
     setCurrentPage: Function
 }
-
-
 
 type AuthContextType = {
     token: string;
@@ -54,78 +50,135 @@ export const AuthContext = createContext<AuthContextType>({
 })
 
 export const AuthProvider = ({ children }: { children: React.ReactElement }) => {
-    const [token, setToken] = useState<string>("")
+    const [token, setToken] = useState<string>(() => {
+        if (typeof window !== 'undefined') {
+            // Check if window is defined (i.e., we are in a browser environment)
+            const storedToken = localStorage.getItem("token");
+            return storedToken || "";
+        }
 
-    // const [token, setToken] = useState<string>(() => {
-    //     const tokenFromSession = sessionStorage.getItem('token');
-    //     return tokenFromSession ? tokenFromSession : '';
-    // });
-
+        return "";
+    });
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(false);
+    // const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    //     if (typeof window !== 'undefined') {
+    //         const storedIsAdmin = localStorage.getItem("isAdmin");
+    //         return storedIsAdmin === "true";
+    //     }
+
+    //     return false;
+    // });
+
+    // const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    //     const storedIsAdmin = typeof window !== 'undefined' ? localStorage.getItem("isAdmin") : "";
+    //     return storedIsAdmin === "true";
+    // });
+    // const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    //     try {
+    //       const storedIsAdmin = typeof window !== 'undefined' ? localStorage.getItem("isAdmin") : "";
+    //       return storedIsAdmin === "true";
+    //     } catch (error) {
+    //       console.error('Error initializing isAdmin:', error);
+    //       return false; // Provide a default value in case of an error
+    //     }
+    //   });
+    // const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(() => {
+    //     const storedIsSuperAdmin = typeof window !== 'undefined' ? localStorage.getItem("isSuperAdmin") : "";
+    //     return storedIsSuperAdmin === "true";
+    // }); 
+    // const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    //     try {
+    //       const storedIsAdmin = typeof window !== 'undefined' ? localStorage.getItem("isAdmin") : null;
+    //       return storedIsAdmin ? JSON.parse(storedIsAdmin) : false;
+    //     } catch (error) {
+    //       console.error('Error parsing isAdmin:', error);
+    //       return false;
+    //     }
+    //   });
+      
+    //   const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(() => {
+    //     try {
+    //       const storedIsSuperAdmin = typeof window !== 'undefined' ? localStorage.getItem("isSuperAdmin") : null;
+    //       return storedIsSuperAdmin ? JSON.parse(storedIsSuperAdmin) : false;
+    //     } catch (error) {
+    //       console.error('Error parsing isSuperAdmin:', error);
+    //       return false;
+    //     }
+    //   });
+
+    // const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    //     if (typeof window !== 'undefined') {
+    //         const storedIsAdmin = localStorage.getItem("isAdmin");
+    //         return storedIsAdmin ? JSON.parse(storedIsAdmin) : false;
+    //     }
+    
+    //     return false;
+    // });
+    
+    // const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(() => {
+    //     if (typeof window !== 'undefined') {
+    //         const storedIsSuperAdmin = localStorage.getItem("isSuperAdmin");
+    //         return storedIsSuperAdmin ? JSON.parse(storedIsSuperAdmin) : false;
+    //     }
+    
+    //     return false;
+    // });
+
     const [isUser, setisUser] = useState<boolean>(false);
     const [userID, setUserId] = useState<any>("");
     const [gcpToken, setGCPToken] = useState<string>("");
 
-    const [redirect, setRedirect] = useState<string>('');
-    const [initializing, setInitializing] = useState<boolean>(true)
-    const [currentPage, setCurrentPage] = useState<string>('')
-
-
-    const router = useRouter()
-    // const checkExpiry = () => {
-    //     axios.post('/api/protected/check', null, { headers: { 'Authorization': `Bearer ${token}` } })
-    //         .then(response => {
-    //         })
-    //         .catch(error => {
-    //             logOut();
-    //         })
-    //     if (token !== '') {
-    //         setTimeout(() => {
-    //             checkExpiry()
-    //         }, (60 * 60 * 1000))
-    //     }
-    // }
+ 
 
     useEffect(() => {
-        const getTokenFromSession = sessionStorage.getItem('token') ? sessionStorage.getItem('token') : null
-      
+        const storedToken = localStorage.getItem("token");
+        if (storedToken) {
+            setToken(storedToken);
+        }
+        const isadminFromSession = localStorage.getItem('isAdmin');
+        if(isadminFromSession){
+            setIsAdmin(isadminFromSession === "true");
+        }
 
-        setCurrentPage(router.pathname)
-        if (getTokenFromSession !== null) {
-            setToken(getTokenFromSession)
+        const issuperadminFromSession = localStorage.getItem('isSuperAdmin');
+        if(issuperadminFromSession){
+            setIsSuperAdmin(issuperadminFromSession === "true");
         }
-     
-        const getRedirectFromSession = sessionStorage.getItem('redirect') ? sessionStorage.getItem('redirect') : null
-        if (getRedirectFromSession !== null) {
-            setRedirect(getRedirectFromSession)
+
+        const userIDFromSession = localStorage.getItem('userID');
+        if(userIDFromSession){
+            setUserId(userIDFromSession);
         }
-        // if (token !== '') {
-        //     checkExpiry()
-        // }
-        setInitializing(false)
-    }, [token, redirect, router.events])
+        // localStorage.setItem("isAdmin", isAdmin.toString());
+        // localStorage.setItem("isSuperAdmin", isSuperAdmin.toString());
+
+    
+    }, [token, isAdmin, isSuperAdmin, userID]);
+
+    // useEffect(() => {
+    //     localStorage.setItem("isAdmin", isAdmin.toString());
+    // }, [isAdmin]);
+
+    // useEffect(() => {
+    //     localStorage.setItem("isSuperAdmin", isSuperAdmin.toString());
+    // }, [isSuperAdmin]);
+
+    const router = useRouter()
 
     const updateToken = (token: string) => {
-        sessionStorage.setItem('token', token)
+        localStorage.setItem('token', token)
         setToken(token)
     }
 
- 
-  
+    const logOut = () => {
+        setToken('')
+        localStorage.clear()
+        router.push('/login')
+    }
 
-    // const preSite = (path: string) => {
-    //     sessionStorage.setItem('redirect', path)
-    //     setRedirect(path)
-    // }
-
-    // const logOut = () => {
-    //     setToken('')
-    //     sessionStorage.clear()
-    //     router.push('/login')
-    // }
     return (
-        <AuthContext.Provider value={{ token,updateToken, isAdmin, isSuperAdmin, isUser, userID, gcpToken, setGCPToken, setUserId, setToken, setIsAdmin, setIsSuperAdmin, setisUser }}>
+        <AuthContext.Provider value={{ token, updateToken, isAdmin, isSuperAdmin, isUser, userID, gcpToken, setGCPToken, setUserId, setToken, setIsAdmin, setIsSuperAdmin, setisUser }}>
             {children}
         </AuthContext.Provider>
     )

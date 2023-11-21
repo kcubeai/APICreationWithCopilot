@@ -48,7 +48,7 @@ import { useRouter } from "next/router";
     const [userec2,setUserec2]=useState<any>(data.entire_list.ec2_instance_list.filter((topItem: any) => data.userDetail.ec2List.some((existItem: any) => existItem.instance_id== topItem.id)).map((item: any) => item.id))
 
     const [userrds,setUserrds]=useState<any>(data.entire_list.rds_identifiers.filter((topItem: any) => data.userDetail.rdsList.some((existItem: any) => existItem.identifier_id== topItem.id)).map((item: any) => item.id))
-    const [uservm,setUservm]=useState<any>(data.entire_list.vmList.filter((topItem: any) => data.userDetail.vmList.some((existItem: any) => existItem.instance_id== topItem.id)).map((item: any) => item.id))
+    // const [uservm,setUservm]=useState<any>(data.entire_list.vmList.filter((topItem: any) => data.userDetail.vmList.some((existItem: any) => existItem.instance_id== topItem.id)).map((item: any) => item.id))
     const [hasChanges, setHasChanges] = useState(false);
     const [open, setOpen] = useState(false);
     const showModal = () => {
@@ -95,7 +95,7 @@ import { useRouter } from "next/router";
             "projectList": selectedProject,
             "ec2Instances": userec2,
             "rdsIdentifiers": userrds,
-            "vmInstances": uservm
+            // "vmInstances": uservm
             // "ec2Instances": data.entire_list.ec2_instance_list.filter((topItem: any) => data.project_detail.aws_ec2_list.some((existItem: any) => existItem.id == topItem.id)).map((item: any) => item.id)
         },
     },
@@ -202,17 +202,17 @@ const checkchanges= (formdata: any)=>{
         };
       
     
-        if (userisuser) {
+        // if (userisuser) {
           
-            if (formdata.ec2Instances.length > 0 || formdata.rdsIdentifiers.length > 0 || formdata.vmInstances.length > 0) {
-                            clearErrors('instance');
-                            // return true;
-                        } else {
-                            setError("instance", {type: "manual", message: "Please select at least one instance", });
-                            return false;
-                        }
+        //     if (formdata.ec2Instances.length > 0 || formdata.rdsIdentifiers.length > 0 || formdata.vmInstances.length > 0) {
+        //                     clearErrors('instance');
+        //                     // return true;
+        //                 } else {
+        //                     setError("instance", {type: "manual", message: "Please select at least one instance", });
+        //                     return false;
+        //                 }
 
-        }
+        // }
     //    console.log("formValues",formValues)
         try {
           await axios.post('/api/add-user', formValues, { headers: { 'Authorization': token, action: "edit", userID } }).then((response: any) => {

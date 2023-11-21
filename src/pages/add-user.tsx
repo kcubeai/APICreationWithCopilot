@@ -236,7 +236,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
             handleSearch() 
         }
    
-    }, [memoizedUserWithProject])
+    }, [memoizedUserWithProject, isAdmin])
     // useEffect(() => {
     //     // Code to run on mount
     // }, [project_user]);
@@ -332,6 +332,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                 }
             });
             setFilterList(filtered);
+
         // console.log("filter",filteredWishlist)  
         // console.log("filter1",userwithproject.includes(item.id))
     };
