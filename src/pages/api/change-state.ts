@@ -5,6 +5,7 @@ import { decrypt } from '@/shared/crypto';
 import { logger } from '@/shared/logger';
 import { DBCONNECT } from '@/shared/database';
 import * as gcp from "../../shared/gcp-config";
+import { createJWTClient } from "../../shared/gcp-config";
 
 import { google } from 'googleapis'
 const compute = google.compute('v1');
@@ -80,8 +81,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }
             } else if (type == "VM") {
                 if (action == 'stop') {
-
-                    var token = await gcp.jwtClient.authorize();
+                    
+                    // var token = await gcp.jwtClient.authorize();
+                    const jwtClient = await createJWTClient();
+                    const token = await jwtClient.authorize();
                     var headers: any = {
                         project: 'kcube-ai', // Replace with your GCP project ID
                         zone: 'us-west1-b', // Replace with your desired zone
@@ -97,7 +100,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     }
                 } else if (action == "start") {
 
-                    var token = await gcp.jwtClient.authorize();
+                    // var token = await gcp.jwtClient.authorize();
+                    const jwtClient = await createJWTClient();
+                    const token = await jwtClient.authorize();
                     var headers: any = {
                         project: 'kcube-ai', // Replace with your GCP project ID
                         zone: 'us-west1-b', // Replace with your desired zone

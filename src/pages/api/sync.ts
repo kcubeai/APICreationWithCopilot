@@ -2,8 +2,10 @@ import { NextApiRequest, NextApiResponse } from "next";
 import * as utils from '../../shared/aws-config';
 import { DBCONNECT } from "@/shared/database";
 import * as gcp from "../../shared/gcp-config";
+import { createJWTClient } from "../../shared/gcp-config";
 
 import { google } from 'googleapis'
+import { JWT } from "google-auth-library";
 const compute = google.compute('v1');
 const sqladmin = google.sqladmin('v1beta4')
 export default async function getRDSInstanceListandSaveitinDB(request: NextApiRequest, response: NextApiResponse) {
@@ -73,7 +75,8 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
         }
         const ec2instancesList = await DBCONNECT('Select * from ec2_instances');
         const rdsidentifierList = await DBCONNECT('Select * from rds_identifiers');
-        var token = await gcp.jwtClient.authorize();
+        const jwtClient = await createJWTClient();
+        const token = await jwtClient.authorize();
         var headers: any = {
             project: 'kcube-ai', // Replace with your GCP project ID
             zone: 'us-west1-b', // Replace with your desired zone

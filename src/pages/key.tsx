@@ -7,6 +7,7 @@ import HeaderComponent from '@/shared/components/header';
 import { useAuth } from '@/shared/utils/auth-context';
 import { networkInterfaces } from 'os';
 import router from 'next/router';
+import axios from 'axios';
 
 
 
@@ -18,8 +19,24 @@ export default function UpdateCredentials() {
   const [gcpkey, setGcpkey] = useState('');
   const [showAws, setShowAws] = useState(false);
     const [showGcp, setShowGcp] = useState(false);
+    const [email, setemail] = useState('');
     const [error, setError] = useState('');
+    const [server_detail, setserver_detail] = useState<any>([]);
+    const [aws_detail, setAws_detail] = useState<any>([]);
+  
     
+const getserverlist = async () => {
+  await axios.get('/api/update_config', { headers: { Authorization: token, action: "get"} }).then((response: any) => {
+    if (response.data.server_detail != null) {
+      const aws_server_detail = response.data.server_detail.find((server: any) => server.id === 1);
+      setAws_detail(aws_server_detail);
+      // console.log("server.......", server_detail);
+      // console.log("aws.......", aws_server_detail.name);
+    } else {
+      // Handle case when server_detail is null
+    }
+  });
+}
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAwsaccessid(e.target.value);
@@ -31,6 +48,10 @@ export default function UpdateCredentials() {
   };
   const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGcpkey(e.target.value);
+    setError('');
+  };
+  const handleemailchange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setemail(e.target.value);
     setError('');
   };
 
@@ -109,7 +130,7 @@ const handleUpdateAws = async () => {
            'authorization': `${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({gcpkey }),
+        body: JSON.stringify({gcpkey,email,userID }),
       });
 
       const data = await response.json();
@@ -124,6 +145,8 @@ const handleUpdateAws = async () => {
       alert('Error updating token. Please try again.');
     }
   };
+
+  
 
   return (
 
@@ -163,13 +186,20 @@ const handleUpdateAws = async () => {
                         <h1>Access key update</h1>
 
                         <div>
-                        <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => {setShowAws(true); setShowGcp(false)}}>AWS</Button>
-                        {/* <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => {setShowAws(false);setShowGcp(true)}}>GCP</Button> */}
+                        <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => {setShowAws(true); setShowGcp(false);getserverlist()}}>AWS</Button>
+                        <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => {setShowAws(false);setShowGcp(true)}}>GCP</Button>
                        
                         </div>
                         <div>
                              {showAws && (
                             <>
+                           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px',marginTop:'20px' }}>
+                                <label style={{ marginRight: '16px', fontWeight: 'bold' }}>
+                                    AWS Access ID:
+                                    <Input type="text" value={aws_detail.name} onChange={handleUsernameChange} />
+                                </label>
+                            </div>
+
                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px',marginTop:'20px' }}>
                                 <label style={{ marginRight: '16px', fontWeight: 'bold' }}>
                                     AWS Access ID:
@@ -197,6 +227,15 @@ const handleUpdateAws = async () => {
                         )}
                         {showGcp && (
                             <>
+                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px',marginTop:'20px' }}>
+                                <label style={{ marginRight: '16px', fontWeight: 'bold' }}>
+                                    Email:
+                                    <Input type="text" value={email} onChange={handleemailchange} />
+                                </label>
+                            </div>
+                            <div>
+
+                            </div>
                                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px',marginTop:'20px' }}>
                                 <label style={{ marginRight: '16px', fontWeight: 'bold' }}>
                                     GCP Private Key:
