@@ -105,7 +105,7 @@ const handleUpdateAws = async () => {
         } else {
             notification.error({
                 message: 'Error',
-                description: 'Error updating username. Please try again.',
+                description: 'Error updating access key. Please try again.',
             });
         }
     } catch (error) {
@@ -135,11 +135,24 @@ const handleUpdateAws = async () => {
 
       const data = await response.json();
 
+ 
       if (data.success) {
-        alert(data.message);
-      } else {
-        alert('Error updating token. Please try again.');
-      }
+           
+
+        setTimeout(() => {
+          notification.success({
+            message: 'Success',
+            description: data.message,
+          });
+
+          // router.push('/dashboard');
+        }, 1200);
+    } else {
+        notification.error({
+            message: 'Error',
+            description: 'Error updating access key. Please try again.',
+        });
+    }
     } catch (error) {
       console.error('Error updating token:', error);
       alert('Error updating token. Please try again.');
@@ -195,8 +208,8 @@ const handleUpdateAws = async () => {
                             <>
                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px',marginTop:'20px' }}>
                                 <label style={{ marginRight: '16px', fontWeight: 'bold' }}>
-                                    AWS Access ID:
-                                    <Input type="text" value={aws_detail.name} onChange={handleUsernameChange} />
+                                    Name:
+                                    <Input type="text" defaultValue={aws_detail.name} value={aws_detail.name}  />
                                 </label>
                             </div>
 
