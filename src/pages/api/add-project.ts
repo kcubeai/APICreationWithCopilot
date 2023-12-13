@@ -59,11 +59,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     if (result.rows.length > 0) {
                         if (ec2Instances && ec2Instances.length > 0) {
                             const aws_ec2_string = ec2Instances.map((value: any) => `'${value}'`).join(', ');
-                            console.log(ec2Instances)
+                            // console.log(ec2Instances)
                             // const aws_ec2_update_query = `update ec2_instances set is_mapped=true,project_id=${result.rows[0].id} where id in (${aws_ec2_string}) `
                             // const ec2_update = await DBCONNECT(aws_ec2_update_query)
                             const service_assigned_query = await DBCONNECT(`insert into service_assigned_with_projects(service_id,service_type,isactive,project_id) SELECT unnest(ARRAY[${aws_ec2_string}]), 'ec2',true,${result.rows[0].id};`)
-                            console.log(service_assigned_query.rows);
+                            // console.log(service_assigned_query.rows);
                         }
                         if (rdsIdentifiers && rdsIdentifiers.length > 0) {
                             const aws_rds_string = rdsIdentifiers.map((value: any) => `'${value}'`).join(', ');
@@ -71,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             // const aws_rds_update_query = `update rds_identifiers set is_mapped=true,project_id=${result.rows[0].id} where id in (${aws_rds_string}) `
                             // const rds_update = await DBCONNECT(aws_rds_update_query);
                             const service_assigned_query = await DBCONNECT(`insert into service_assigned_with_projects(service_id,service_type,isactive,project_id) SELECT unnest(ARRAY[${aws_rds_string}]), 'rds',true,${result.rows[0].id};`)
-                            console.log(service_assigned_query.rows);
+                            // console.log(service_assigned_query.rows);
                         }
                         if (vmInstances && vmInstances.length > 0) {
                             const gcp_vm_string = vmInstances.map((value: any) => `'${value}'`).join(', ');
@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             // const gcp_vm_update_query = `update vm_instances set is_mapped=true,project_id=${result.rows[0].id} where id in (${gcp_vm_string}) `
                             // const gcp_vm_update = await DBCONNECT(gcp_vm_update_query);
                             const service_assigned_query = await DBCONNECT(`insert into service_assigned_with_projects(service_id,service_type,isactive,project_id) SELECT unnest(ARRAY[${gcp_vm_string}]), 'vm',true,${result.rows[0].id};`)
-                            console.log(service_assigned_query);
+                            // console.log(service_assigned_query);
                         }
                     }
                     res.status(200).json({ message: 'Project Added Successfully' })
@@ -104,28 +104,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const updateProject_name = await DBCONNECT(`update projects set project_name='${name}' where id=${id}`);
                     if (ec2Instances && ec2Instances.length > 0) {
                         const aws_ec2_string = ec2Instances.map((value: any) => `'${value}'`).join(', ');
-                        console.log(`select update_ec2_services_for_projects(Array[${aws_ec2_string}],${id});`);
+                        // console.log(`select update_ec2_services_for_projects(Array[${aws_ec2_string}],${id});`);
                         const update_ec2_projects = await DBCONNECT(`select update_ec2_services_for_projects(Array[${aws_ec2_string}],${id});`)
                     } else {
                         const delete_existing_ec2 = await DBCONNECT(`delete from service_assigned_with_projects where project_id=${id} and service_type='ec2'`)
                     }
                     if (rdsIdentifiers && rdsIdentifiers.length > 0) {
                         const aws_rds_string = rdsIdentifiers.map((value: any) => `'${value}'`).join(', ');
-                        console.log(`select update_rds_services_for_projects(Array[${aws_rds_string}],${id});`);
+                        // console.log(`select update_rds_services_for_projects(Array[${aws_rds_string}],${id});`);
                         const update_rds_projects = await DBCONNECT(`select update_rds_services_for_projects(Array[${aws_rds_string}],${id});`);
                     } else {
                         const delete_existing_rds = await DBCONNECT(`delete from service_assigned_with_projects where project_id=${id} and service_type='rds'`)
                     }
                     if (vmInstances && vmInstances.length > 0) {
                         const gcp_vm_string = vmInstances.map((value: any) => `'${value}'`).join(', ');
-                        console.log(`select update_vm_services_for_projects(Array[${gcp_vm_string}],${id});`);
+                        // console.log(`select update_vm_services_for_projects(Array[${gcp_vm_string}],${id});`);
                         const update_vm_projects = await DBCONNECT(`select update_vm_services_for_projects(Array[${gcp_vm_string}],${id});`);
                     } else {
                         const delete_existing_vm = await DBCONNECT(`delete from service_assigned_with_projects where project_id=${id} and service_type='vm'`)
                     }
                     res.status(200).json({ message: 'Project Updated Successfully' })
                 } catch (error) {
-                    console.log("issue in editing the project", error)
+                    // console.log("issue in editing the project", error)
                     logger.error(
                         `[${req.method} ${req.url}] - ${error}  Issue in Editing the project`
                     )

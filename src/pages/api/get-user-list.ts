@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const { ['password']: omit, ...rest } = obj; // Use destructuring to omit the specified property
                     return rest;
                 });
-                console.log("id taken", id)
+          
                 res.status(200).json({ message: 'All Users Listed Successfully  .', userList: newArray 
             });
                     }

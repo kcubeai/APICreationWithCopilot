@@ -125,7 +125,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 let isuser = role == "isuser" ? true : false;
 
                 const userAddQuery = `INSERT into user_detail (username,password,created_date,isadmin,issuperadmin,isuser,isactive) values ('${username}','${password}',NOW(),${isadmin},${issuperadmin},${isuser},true) Returning id;`;
-                console.log(userAddQuery)
+                // console.log(userAddQuery)
                 const insert_result = await DBCONNECT(userAddQuery);
                 const update_log = await DBCONNECT(`insert into user_action_logs (user_id,action,log_time,user_name) values(${userID},'added the user "${username}" with id ${insert_result.rows[0].id}',NOW(),'${userName.rows[0].username}')`);
                 if (insert_result.rows[0].id != "") {

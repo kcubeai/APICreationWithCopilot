@@ -6,7 +6,7 @@ export default async function handler(req: any, res: any) {
     // const { id } = req.query;
     const id: any = req.headers['id']
 
-    console.log("id from header", id)
+    // console.log("id from header", id)
 
     const isSuperAdmin: any = req.headers['issuperadmin']
     const isAdmin: any = req.headers['isadmin']
@@ -55,7 +55,7 @@ export default async function handler(req: any, res: any) {
                 }
             } else if (isAdmin) {
                 let query = await DBCONNECT(`SELECT project_id FROM users_assigned_with_projects where user_id=${userID}`);
-                console.log(query.rows, `SELECT project_id FROM users_assigned_with_projects where user_id=${userID}`)
+                // console.log(query.rows, `SELECT project_id FROM users_assigned_with_projects where user_id=${userID}`)
                 if (query.rows.length > 0) {
                     var project_ids = query.rows.map((item: any) => item.project_id)
                     let list_query = `Select * from projects where id in (${project_ids})`
