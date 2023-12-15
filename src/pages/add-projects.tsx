@@ -138,7 +138,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         name: '',
         ec2Instances: [],
         rdsIdentifiers: [],
-        vmInstances: []
+        // vmInstances: []
     });
 
     const handleFormValuesChange = (changedValues: any, allValues: any) => {
@@ -170,7 +170,9 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
         }
     })
     const isFormValid = () => {
-        return ((formValues.name && formValues.name.length > 0) && ((formValues.ec2Instances && formValues.ec2Instances.length > 0) || (formValues.rdsIdentifiers && formValues.rdsIdentifiers.length > 0) || (formValues.vmInstances && formValues.vmInstances.length > 0)))
+        return ((formValues.name && formValues.name.length > 0) && ((formValues.ec2Instances && formValues.ec2Instances.length > 0) || (formValues.rdsIdentifiers && formValues.rdsIdentifiers.length > 0) 
+        // || (formValues.vmInstances && formValues.vmInstances.length > 0)
+        ))
     }
     const handleAddProject = () => {
         // Add new project to the list
@@ -193,11 +195,14 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
             ec2_instance_list.forEach((topItem: any) => aws_ec2.some((existItem: any) => { if (existItem.id === topItem.id) { topItem.checked = true; } else { topItem.checked = false; } }))
             const updatedrdsList: any = rds_identifiers.filter((topItem: any) => aws_rds.some((existItem: any) => existItem.id === topItem.id)).map((item: any) => item.id);
             rds_identifiers.forEach((topItem: any) => aws_rds.some((existItem: any) => { if (existItem.id === topItem.id) { topItem.checked = true; } else { topItem.checked = false; } }))
-            const updatedvmList: any = vmList.filter((topItem: any) => aws_rds.some((existItem: any) => existItem.id === topItem.id)).map((item: any) => item.id);
-            vmList.forEach((topItem: any) => aws_rds.some((existItem: any) => { if (existItem.id === topItem.id) { topItem.checked = true; } else { topItem.checked = false; } }))
+            // const updatedvmList: any = vmList.filter((topItem: any) => aws_rds.some((existItem: any) => existItem.id === topItem.id)).map((item: any) => item.id);
+            // vmList.forEach((topItem: any) => aws_rds.some((existItem: any) => { if (existItem.id === topItem.id) { topItem.checked = true; } else { topItem.checked = false; } }))
+           
             setEC2(updatedec2List);
             setRDS(updatedrdsList)
-            setFormValues({ "id": id, "name": proj_name, "ec2Instances": updatedec2List, "rdsIdentifiers": updatedrdsList, "vmInstances": updatedvmList })
+            setFormValues({ "id": id, "name": proj_name, "ec2Instances": updatedec2List, "rdsIdentifiers": updatedrdsList
+            // , "vmInstances": updatedvmList 
+        })
 
             var filtered_ec2_list = ec2_instance_list.filter((item: any) => !item.status.includes("termin"));
             var filtered_rds_list = rds_identifiers.filter((item: any) => !item.status.includes("delet"));
@@ -261,8 +266,8 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                     id: "",
                     name: '',
                     ec2Instances: [],
-                    rdsIdentifiers: [],
-                    vmInstances: []
+                    rdsIdentifiers: []
+                    // vmInstances: []
                 })
                 form.resetFields();
                 setAction("add")
@@ -399,15 +404,17 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                                     valuePropName="value"
                                 >
                                     {/* value={selectedVM} */}
-                                    <Checkbox.Group name="vmInstances" value={selectedVM}>
+                                    {/* <Checkbox.Group name="vmInstances" value={selectedVM}>
                                         {vmList.map((rds: any) => (
                                             <Checkbox key={rds.id} value={rds.id}>
                                                 {rds.name}
                                             </Checkbox>
-                                        ))}
+                                        ))} */}
                                         {/* disabled={rds.is_mapped} */}
-                                    </Checkbox.Group>
+                                    {/* </Checkbox.Group> */}
                                 </Form.Item>
+
+                                <h6 style={{ marginBottom: '20px', padding: '5px' }}>Note: Select atleast one instances</h6>
                                 <Form.Item>
                                     <Button style={{ cursor: isFormValid() ? 'pointer' : 'not-allowed', opacity: isFormValid() ? 1 : 0.5 }}
                                         type="primary"

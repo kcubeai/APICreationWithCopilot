@@ -27,7 +27,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
     const [rdsList, setRDSList] = useState([]);
     const [VMList, setVMList] = useState([]); isAdmin
     const [showAdd, setShowAdd] = useState<boolean>(false);
-    const [userList, setUserList] = useState(data.userList ? data.userList : [])
+    const [userList, setUserList] = useState(data.userList ? data.userList : []);
     const [filterUserList, setFilterList] = useState<any>(userList);
     const [projectCheckList, setProjectCheckList] = useState(data.projectList ? data.projectList : []);
   
@@ -179,6 +179,10 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
         setUserList([])
         axios.post('/api/add-user', { id: record.id }, { headers: { "authorization": token, action: 'delete', userID } }).then((response: any) => {
             if (response.data.status == 200) {
+                setLoading(true);
+                setTimeout(() => {
+                    setLoading(false);
+                }, 2000);
                 setUserList(response.data.userList)
                 getUserList()
                 notification.success({
@@ -188,7 +192,8 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                     duration: 3
                 });
                 form.resetFields();
-                setShowAdd(false)
+                setShowAdd(false);
+                
             }
         }, (error: any) => {
             notification.error({
@@ -212,18 +217,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
         }
     }, [memoizedProjectUser]); 
 
-    // useEffect(() => {
-    //     if (userwithproject.length > 0) {
-    //         setUserwithproject(userwithproject);
-    // }
-    // }, [userwithproject]);
-
-    // useEffect(() => {
-    //     if (userwithproject == "") {
-          
-    //     }
-
-    // }, [userwithproject])
+   
 
     const memoizedUserWithProject = useMemo(() => userwithproject, [userwithproject]);
 
@@ -235,8 +229,14 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
  
             handleSearch() 
         }
+        if(isSuperAdmin){
+           setFilterList(userList)
+           setTimeout(() => {
+            setLoading(false);
+        }, 1000);
+        }
    
-    }, [memoizedUserWithProject, isAdmin])
+    }, [memoizedUserWithProject, isAdmin, userList])
     // useEffect(() => {
     //     // Code to run on mount
     // }, [project_user]);
@@ -776,7 +776,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                                 Add User
                             </Button>
                         </div>
-                        <Table columns={columns} dataSource={filterUserList} style={{ marginTop: '20px' }} />
+                        <Table key={filterUserList.length} columns={columns} dataSource={filterUserList} style={{ marginTop: '20px' }} />
                     </div>
                              )
                        

@@ -1,11 +1,12 @@
 import { Table, Spin, Layout, Button, notification } from 'antd';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../utils/auth-context';
 import { LogoutOutlined, UserAddOutlined, DashboardOutlined } from '@ant-design/icons';
 const { Header, Content } = Layout;
 import axios from 'axios';
 export default function HeaderComponent(props: any) {
-    const { token, setToken, isAdmin, isSuperAdmin, isUser } = useAuth();
+    const { token, setToken, isAdmin, isSuperAdmin, isUser, userID  } = useAuth();
     const router = useRouter();
     const handleLogout = () => {
         // setIsEC2(false)
@@ -28,6 +29,7 @@ export default function HeaderComponent(props: any) {
             }
         }).then((response: any) => {
             console.log(response);
+            // fetchData(selectedType)
             notification.success({
                 message: 'Success',
                 description: 'synced successfully',
@@ -51,7 +53,7 @@ export default function HeaderComponent(props: any) {
                 <h2 style={{ color: '#fff' }}>{props.title}</h2>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     {!router.asPath.includes('dashboard') && <Button type="primary" onClick={() => router.push('/dashboard')} icon={<DashboardOutlined />}>Dashboard</Button>}
-                    <Button style={{ marginLeft: '10px' }} type="primary" onClick={sync} icon={<UserAddOutlined />}>Sync</Button>
+                    {/* <Button style={{ marginLeft: '10px' }} type="primary" onClick={sync} icon={<UserAddOutlined />}>Sync</Button> */}
 
                     {isSuperAdmin && <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => router.push('/logs')} icon={<UserAddOutlined />}>Logs</Button>}
                     {(isSuperAdmin || isAdmin) && !router.asPath.includes('add-user') && <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => router.push('/add-user')} icon={<UserAddOutlined />}>Users</Button>}

@@ -3,16 +3,18 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
-import { LogoutOutlined, UserAddOutlined } from '@ant-design/icons';
-import { Table, Spin, Layout, Button, notification } from 'antd';
+import { LogoutOutlined, UserAddOutlined, SyncOutlined } from '@ant-design/icons';
+import { Table, Spin, Layout, Button, notification} from 'antd';
 import { useAuth } from '@/shared/utils/auth-context';
 import { useRouter } from 'next/router';
 const { Content } = Layout;
 import Head from 'next/head';
 import HeaderComponent from '@/shared/components/header';
 import moment from 'moment';
+
 export default function Login() {
     const [dataforEC2, setDataEC2] = useState<any>("");
+
     const [dataforRDS, setDataRDS] = useState<any>("");
     const [dataforVM, setDataVM] = useState<any>("");
     const { token, setToken, isAdmin, isSuperAdmin, isUser, userID } = useAuth();
@@ -305,16 +307,19 @@ export default function Login() {
     useEffect(() => {
         if (selectedType != "") {
             sync()
+            // fetchData(selectedType)
         }
 
+       
     }, [selectedType])
+  
     useEffect(() => {
         if (token == "") {
             router.push('/login')
         } else {
-
+            fetchData(selectedType)
         }
-    })
+    },[selectedType])
 
     const stopInstance = (id: string) => {
 
@@ -336,10 +341,16 @@ export default function Login() {
                 duration: 3
             });
             sync()
-            setTimeout(() => {
-                sync()
+           
+            const intervalId = setInterval(() => {
 
-            }, 12000)
+                sync();
+            }, 30000);
+            setTimeout(() => {
+                clearInterval(intervalId);
+            }, 60000);
+
+
         }).catch((error) => {
 
             notification.error({
@@ -371,9 +382,25 @@ export default function Login() {
                 duration: 3
             });
             sync()
+            // setTimeout(() => {
+            //     sync()
+            //     // fetchData(selectedType)
+               
+                
+            // }, 12000)
+
+
+            const intervalId = setInterval(() => {
+                // fetchData(selectedType);
+                sync();
+            
+                // Stop the interval after 5 minutes (300,000 milliseconds)
+            }, 30000);
+            
+            // Stop the interval after 5 minutes (300,000 milliseconds)
             setTimeout(() => {
-                sync()
-            }, 12000)
+                clearInterval(intervalId);
+            }, 60000);
         }).catch((error) => {
 
             notification.error({
@@ -391,8 +418,16 @@ export default function Login() {
                 'Authorization': `${token}`,
             }
         }).then((response) => {
-
             fetchData(selectedType)
+
+            
+
+            notification.success({
+                message: 'Success',
+                description: 'synced successfully',
+                placement: 'topRight',
+                duration: 3
+            });
         }).catch((error) => {
 
             notification.error({
@@ -408,19 +443,18 @@ export default function Login() {
 
 // ...
 
-// const Dashboard = () => {
-    // ...
 
-    // useEffect(() => {
-    //     const intervalId = setInterval(() => {
-    //         sync();
-    //     }, 1 * 60 * 1000); // 5 minutes in milliseconds
+   
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            sync();
+            // fetchData(selectedType);
+        }, 5 * 60 * 1000); // 5 minutes in milliseconds
 
-    //     return () => clearInterval(intervalId);
-    // }, []);
+        return () => clearInterval(intervalId);
+    }, []);
 
 
-// };
 
     return (
         <Layout>
@@ -432,9 +466,11 @@ export default function Login() {
             </Head>
             <HeaderComponent title="Dashboard" />
             <Content style={{ padding: '50px' }}>
+
                 <div style={{ marginBottom: '20px' }}>
                     <div style={{ marginBottom: '20px', marginTop: '20px' }}>
                         <h2>Select Type</h2>
+                        <Button type='primary' onClick={() =>{sync()}} style={{ float: 'right', marginRight: '10px' }}><SyncOutlined /> sync</Button>
                     </div>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <Button type={selectedType === 'EC2' ? 'primary' : 'default'} onClick={() => handleTypeChange('EC2')}>
@@ -446,8 +482,11 @@ export default function Login() {
                         <Button type={selectedType === 'VM' ? 'primary' : 'default'} onClick={() => handleTypeChange('VM')} disabled={dataforVM && dataforVM.length <= 0} style={{ display: dataforVM && dataforVM.length <= 0 ? 'none' : 'inline-block' }}>
                             GCP VM
                         </Button>
+                       
 
                     </div>
+                    
+                    
                 </div>
 
 
@@ -458,7 +497,7 @@ export default function Login() {
                         </div>
                         <div>
                             {dataforEC2 ? (
-                                <Table dataSource={dataforEC2} columns={columnsforEC2} rowClassName={(record) => {
+                                <Table key={JSON.stringify(dataforEC2)} dataSource={dataforEC2} columns={columnsforEC2} rowClassName={(record) => {
                                     // Add a custom class to the row if the "Project" column contains an empty string
                                     if (Object.keys(record).length >1){
                                     console.log('record..',record)

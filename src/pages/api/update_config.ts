@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
               if (req.body.awsaccessid && req.body.awskey) {
                 const userID= req.body.userID;
-                // console.log('userID',userID);
+             
                 const username_query = await DBCONNECT(`select username from user_detail where id=${userID}`);
                 const username = username_query.rows[0].username;
                 // console.log('username',username);
@@ -86,31 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   
                   }
 
-        // Remove the unnecessary if statement
-      
-              // const envPath = './.env.local';
-              // const currentEnv = fs.readFileSync(envPath, 'utf8');
-
-              // let updatedEnv = currentEnv;
-
-              // if (req.body.awsaccessid) {
-              //   // Update USERNAME if provided
-              //   // updatedEnv = updatedEnv.replace(/USERNAME=.*/, `USERNAME=${req.body.awsaccessid}`);
-              //   updatedEnv = updatedEnv.replace(/AWS_ACCESS_KEY_ID = .*/, `AWS_ACCESS_KEY_ID =${req.body.awsaccessid}`);
-            
-              // }
-              // if(req.body.awskey){
-              //   // Update TOKEN if providedAWS_SECRET_ACCESS_KEY =
-              //   // updatedEnv = updatedEnv.replace(/TOKEN=.*/, `TOKEN=${req.body.awskey}`);
-              //   updatedEnv = updatedEnv.replace(/AWS_SECRET_ACCESS_KEY =.*/, `AWS_SECRET_ACCESS_KEY =${req.body.awskey}`);
-              // }
-
-              // if (req.body.gcpkey) {
-              //   // Update TOKEN if provided
-              //   updatedEnv = updatedEnv.replace(/GCP_PRIVATE_KEY =.*/, `GCP_PRIVATE_KEY =${req.body.gcpkey}`);
-              // }
-
-              // fs.writeFileSync(envPath, updatedEnv);
+ 
 
               res.status(200).json({ success: true, message: 'Credentials updated successfully!' });
             } catch (error) {

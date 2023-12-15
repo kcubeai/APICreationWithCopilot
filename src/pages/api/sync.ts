@@ -41,7 +41,7 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
                             //@ts-ignore
                             
                             const insert = await DBCONNECT(`UPDATE public.ec2_instances SET  isstopped=${status}, name='${nametag?.Value}', privateIp='${instance.PrivateIpAddress}', public_ip='${instance.PublicIpAddress}',status='${instance.State.Name}',type='${instance.InstanceType}' where id='${instance.InstanceId}'`)
-
+                            const terminate = await DBCONNECT(`DELETE FROM public.ec2_instances WHERE status ='terminated'`) 
                             // }
 
                         }
@@ -69,6 +69,7 @@ export default async function getRDSInstanceListandSaveitinDB(request: NextApiRe
                     //@ts-ignore
                     var status = instance.DBInstanceStatus?.includes('stop') ? true : false;
                     const insert = await DBCONNECT(`UPDATE public.rds_identifiers SET  isstopped=${status}, privateIp='${instance.DBInstanceArn}', public_ip='${instance.Endpoint?.Address}',status='${instance.DBInstanceStatus}',type='${instance.DBInstanceClass}' where id='${instance.DBInstanceIdentifier}'`)
+                    const terminate = await DBCONNECT(`DELETE FROM public.ec2_instances WHERE status ='terminated'`) 
                     // }
                 }
             }
