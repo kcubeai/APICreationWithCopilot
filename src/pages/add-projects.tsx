@@ -398,11 +398,11 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                                         {/* disabled={(action == "add" && rds.is_mapped)}  */}
                                     </Checkbox.Group>
                                 </Form.Item>
-                                <Form.Item
+                                {/* <Form.Item
                                     label="VM Instances"
                                     name="vmInstances"
                                     valuePropName="value"
-                                >
+                                > */}
                                     {/* value={selectedVM} */}
                                     {/* <Checkbox.Group name="vmInstances" value={selectedVM}>
                                         {vmList.map((rds: any) => (
@@ -412,7 +412,7 @@ export default function AddProjectsByListingEC2ListandRDSList({ data }: any) {
                                         ))} */}
                                         {/* disabled={rds.is_mapped} */}
                                     {/* </Checkbox.Group> */}
-                                </Form.Item>
+                                {/* </Form.Item> */}
 
                                 <h6 style={{ marginBottom: '20px', padding: '5px' }}>Note: Select atleast one instances</h6>
                                 <Form.Item>

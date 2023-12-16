@@ -58,7 +58,7 @@ export default function HeaderComponent(props: any) {
                     {isSuperAdmin && <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => router.push('/logs')} icon={<UserAddOutlined />}>Logs</Button>}
                     {(isSuperAdmin || isAdmin) && !router.asPath.includes('add-user') && <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => router.push('/add-user')} icon={<UserAddOutlined />}>Users</Button>}
                     {(isSuperAdmin && !router.asPath.includes('add-projects')) && <Button type="primary" style={{ marginLeft: '10px' }} onClick={() => router.push('/add-projects')} icon={<UserAddOutlined />}>Projects</Button>}
-                    {isSuperAdmin && !router.asPath.includes('key') && <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => router.push('/key')} icon={<UserAddOutlined />} disabled={router.asPath.includes('key')}>Servers</Button>}
+                    {isSuperAdmin && !router.asPath.includes('key') && <Button style={{ marginLeft: '10px' }} type="primary" onClick={() => router.push('/server_config')} icon={<UserAddOutlined />} disabled={router.asPath.includes('key')}>Security</Button>}
                     <Button type="primary" onClick={handleLogout} icon={<LogoutOutlined />} style={{ marginLeft: '10px' }}>Logout</Button>
                 </div>
             </Header>

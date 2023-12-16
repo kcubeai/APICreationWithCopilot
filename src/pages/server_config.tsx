@@ -37,11 +37,11 @@ export default function UpdateCredentials() {
       dataIndex: 'provider',
       key: 'provider',
     },
-    {
-      title: 'Server Name',
-      dataIndex: 'server_name',
-      key: 'server_name',
-    },
+    // {
+    //   title: 'Server Name',
+    //   dataIndex: 'server_name',
+    //   key: 'server_name',
+    // },
     {
       title: 'Edit',
       key: 'Edit',
@@ -292,12 +292,12 @@ const handleUpdateAws = async () => {
                                           </div>
 
                                       </div></div>
-                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px',marginTop:'20px' }}>
+                                    {/* <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px',marginTop:'20px' }}>
                                           <label style={{ marginRight: '16px', fontWeight: 'bold' }}>
                                               Name:
                                               <Input type="text" value={selected_server}   />
                                           </label>
-                                      </div>
+                                      </div> */}
                                       {/* <Input value={selected_server} readOnly /> */}
                                       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px',marginTop:'20px' }}>
                                           <label style={{ marginRight: '16px', fontWeight: 'bold' }}>

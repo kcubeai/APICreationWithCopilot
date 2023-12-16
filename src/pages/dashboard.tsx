@@ -476,10 +476,10 @@ export default function Login() {
                         <Button type={selectedType === 'EC2' ? 'primary' : 'default'} onClick={() => handleTypeChange('EC2')}>
                             AWS EC2
                         </Button>
-                        <Button type={selectedType === 'RDS' ? 'primary' : 'default'} onClick={() => handleTypeChange('RDS')} disabled={dataforRDS && dataforRDS.length <= 0} style={{ display: dataforVM && dataforVM.length <= 0 ? 'none' : 'inline-block' }}>
+                        <Button type={selectedType === 'RDS' ? 'primary' : 'default'} onClick={() => handleTypeChange('RDS')}>
                             AWS RDS
                         </Button>
-                        <Button type={selectedType === 'VM' ? 'primary' : 'default'} onClick={() => handleTypeChange('VM')} disabled={dataforVM && dataforVM.length <= 0} style={{ display: dataforVM && dataforVM.length <= 0 ? 'none' : 'inline-block' }}>
+                        <Button type={selectedType === 'VM' ? 'primary' : 'default'} onClick={() => handleTypeChange('VM')}>
                             GCP VM
                         </Button>
                        

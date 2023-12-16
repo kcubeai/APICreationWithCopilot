@@ -730,7 +730,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                                         })}
                                     </Checkbox.Group>
                                 </Form.Item>
-                                <Form.Item name="vmList" label="Select VM" >
+                                {/* <Form.Item name="vmList" label="Select VM" >
                                     <Checkbox.Group onChange={handleVMListChange}>
                                         {vmCheckList.map((rds: any) => {
                                             //@ts-ignore
@@ -745,7 +745,7 @@ export default function AddUserWithNamePasswordEmail({ data }: any) {
                                             return null;
                                         })}
                                     </Checkbox.Group>
-                                </Form.Item>
+                                </Form.Item> */}
                             </>
                                 : null}
 
